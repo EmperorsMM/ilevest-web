@@ -1,0 +1,45 @@
+name: Deploy to staging
+
+# On merge to main: apply DB migrations to staging, then deploy the app to staging.
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging # uses GitHub Environment "staging" secrets
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # 1) Apply database migrations (plain SQL) to the STAGING Supabase project.
+      - name: Apply migrations (staging)
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase db push --db-url "$SUPABASE_DB_URL"
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+      # 2) Deploy the web app to STAGING on Vercel.
+      #    (PR previews are handled by Vercel's Git integration; this is the controlled
+      #     staging deploy. See infra/environments.md for the flagged Vercel mapping decision.)
+      - name: Deploy web (staging)
+        run: npx --yes vercel@latest deploy --yes --token "$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

@@ -1,0 +1,7 @@
+{
+  "name": "@ilevest/config",
+  "version": "0.0.0",
+  "private": true,
+  "main": "eslint-preset.cjs",
+  "files": ["eslint-preset.cjs", "tsconfig.base.json"]
+}

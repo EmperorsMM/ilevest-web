@@ -1,0 +1,29 @@
+# deps
+node_modules/
+.pnpm-store/
+
+# next / builds
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# turbo
+.turbo/
+
+# env — NEVER commit real secrets. Only .env.example is tracked.
+.env
+.env.*
+!.env.example
+
+# vercel / supabase local
+.vercel/
+supabase/.branches/
+supabase/.temp/
+
+# misc
+coverage/
+.DS_Store
+*.log

@@ -1,0 +1,13 @@
+openapi: 3.1.0
+info:
+  title: Ilevest API
+  version: 0.0.0
+  description: >
+    Placeholder contract (Build Stage 0). The real API surface is authored in Build Stage 2.
+    Kept here as the single source of truth for both the web app and the Android Oracle app.
+servers:
+  - url: https://api.example.invalid
+    description: placeholder — real per-environment servers added later
+paths: {}
+components:
+  schemas: {}

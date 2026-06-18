@@ -1,0 +1,2 @@
+-- Local-only seed data. Empty placeholder (Build Stage 0).
+-- Never put production or customer data here.
