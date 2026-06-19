@@ -31,3 +31,5 @@ switched on later without restructuring, but nothing in it is built.
 4. `pnpm dev`
 
 See `infra/environments.md` for environments and `PORTABILITY.md` for the portability rules.
+
+Live on Vercel as of June 2026
