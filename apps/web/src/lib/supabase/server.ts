@@ -1,8 +1,7 @@
-// Server Supabase client (RSC / route handlers). Still uses the anon key so that
+// Server Supabase client (RSC / route handlers). Uses the anon key so that
 // Row-Level Security applies to the signed-in user. The SERVICE ROLE key is reserved
 // for narrow, audited server tasks only and must never be the default path.
-// Starting stub — verify the API against the installed @supabase/ssr version.
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 export function createSupabaseServerClient() {
@@ -12,10 +11,12 @@ export function createSupabaseServerClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll: (toSet) => {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
           try {
-            toSet.forEach(({ name, value, options }) =>
+            cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options),
             );
           } catch {
