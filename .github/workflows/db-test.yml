@@ -1,0 +1,85 @@
+# Ilevest — Database + functions tests
+# Spins up a throwaway PostgreSQL, applies every migration in order, then runs the Stage 1 and
+# Stage 2 behavioural smoke tests (FSM, RLS, append-only money + verdict, the proof-layer
+# hash-chain, fan-out + idempotency, Ops-direct assignment, evidence least-privilege, sealing,
+# public verification). A second job runs the Paystack webhook signature unit test under Node.
+# Green = the foundation and the workflow engine still hold. Runs on pushes/PRs that touch the
+# DB or the functions, and can be run by hand from the Actions tab (workflow_dispatch).
+
+name: Database + functions tests
+
+on:
+  push:
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
+      - 'supabase/functions/**'
+      - '.github/workflows/db-test.yml'
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
+      - 'supabase/functions/**'
+  workflow_dispatch: {}
+
+jobs:
+  database:
+    name: migrations + behavioural smoke tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ilevest_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: ilevest_test
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install the psql client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
+
+      - name: Apply all migrations in order
+        run: |
+          set -e
+          for f in $(ls supabase/migrations/*.sql | sort); do
+            echo "applying $(basename "$f")"
+            psql -v ON_ERROR_STOP=1 -q -f "$f"
+          done
+          echo "all migrations applied"
+
+      - name: Stage 1 smoke test (schema, RLS, immutability, money, hash-chain)
+        run: psql -v ON_ERROR_STOP=1 -q -f supabase/tests/stage1_smoke.sql
+
+      - name: Stage 2 smoke test (fan-out, assignment, evidence, sealing, verification)
+        run: psql -v ON_ERROR_STOP=1 -q -f supabase/tests/stage2_smoke.sql
+
+  functions:
+    name: Edge Function unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Paystack webhook signature verification test
+        run: node --experimental-strip-types supabase/functions/_shared/paystack.test.ts

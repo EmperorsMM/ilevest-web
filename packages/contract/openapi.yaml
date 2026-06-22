@@ -1,13 +1,370 @@
 openapi: 3.1.0
 info:
   title: Ilevest API
-  version: 0.0.0
+  version: 0.2.0
+  license:
+    name: Proprietary
+    identifier: LicenseRef-Proprietary
   description: >
-    Placeholder contract (Build Stage 0). The real API surface is authored in Build Stage 2.
-    Kept here as the single source of truth for both the web app and the Android Oracle app.
+    Ilevest API — Build Stage 2 surface (Phase 1 / Category 1, the verification workflow).
+    This contract is the single source of truth for the web app and the Android Oracle app.
+
+    Architecture: each path is a thin Supabase Edge Function that authenticates the caller and
+    delegates the state change to a portable PL/pgSQL function in the database, where the
+    invariants (finite-state machine, row-level security, append-only money + verdict, the
+    proof-layer hash-chain) are enforced. The payment webhook is built provider-swappable.
+
+    Auth model:
+      * bearerAuth (the caller's Supabase JWT) for staff/worker actions; the database's
+        row-level security and state-machine triggers are the real permission boundary.
+      * the payment webhook authenticates by gateway signature header, not a bearer token.
+      * certificate verification is public (no auth) and returns no personal data.
 servers:
-  - url: https://api.example.invalid
-    description: placeholder — real per-environment servers added later
-paths: {}
+  - url: https://{projectRef}.functions.supabase.co
+    description: Supabase Edge Functions (per environment)
+    variables:
+      projectRef:
+        default: ilevest-dev
+        description: Supabase project ref (ilevest-dev for now; ilevest-prod later)
+
+tags:
+  - name: workflow
+    description: The verification workflow (assignment, evidence, sealing)
+  - name: payments
+    description: Payment confirmation (gateway webhook)
+  - name: public
+    description: Public certificate verification (no auth, no PII)
+
+paths:
+  /orders/{orderId}/fan-out:
+    post:
+      tags: [workflow]
+      operationId: fanOutOrder
+      summary: Materialise an order's checks (system / Ops)
+      description: >
+        Creates one check per selected service on a paid order. Idempotent — re-running never
+        duplicates checks. Normally invoked automatically after the payment webhook confirms;
+        also exposed for an Ops-initiated re-run. Requires the service role or an Ops caller.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Fan-out result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FanOutResult' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /checks/{checkId}/assign:
+    post:
+      tags: [workflow]
+      operationId: assignCheck
+      summary: Dispatch a check to a worker (Ops only)
+      description: >
+        Ops assigns a check directly to a worker who holds the partner or field_agent role,
+        moving it from initiated to assigned. Per the Field Agent ruling, field work is
+        dispatched directly by Ops; access to the check is keyed off this assignment.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CheckId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssignRequest' }
+      responses:
+        '200':
+          description: Assignment result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AssignResult' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /checks/{checkId}/evidence:
+    post:
+      tags: [workflow]
+      operationId: recordEvidence
+      summary: Post evidence on an assigned check (assigned worker or staff)
+      description: >
+        Records one evidence item. The content hash is computed on the capturing device; the
+        raw file (if any) lives in storage and is referenced, never inlined. Only the worker
+        the check is assigned to (or staff) may post — enforced by row-level security.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CheckId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EvidenceRequest' }
+      responses:
+        '201':
+          description: Evidence recorded
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EvidenceResult' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /checks/{checkId}/seal:
+    post:
+      tags: [workflow]
+      operationId: sealCheck
+      summary: Seal a check — verdict, fingerprint, commitment (Reviewer/Ops)
+      description: >
+        Finalises a check under review: records the verdict, finalises the check (permanently
+        immutable thereafter), computes a reproducible content fingerprint from the
+        verification's own facts, and appends a commitment to the proof-layer hash-chain.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CheckId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SealRequest' }
+      responses:
+        '200':
+          description: Seal result (the certificate fingerprint and its chain link)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SealResult' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /webhooks/paystack:
+    post:
+      tags: [payments]
+      operationId: paystackWebhook
+      summary: Payment gateway webhook (signature-authenticated, idempotent)
+      description: >
+        Receives a Paystack event. The raw body is verified against the x-paystack-signature
+        header (HMAC SHA-512 with the secret key) before any state change. On a verified
+        charge.success the order's payment is marked verified and its checks are fanned out,
+        idempotently. The receiver and its signature check are isolated so the provider can be
+        swapped (e.g. to Flutterwave) without touching the workflow.
+      security: [{ paystackSignature: [] }]
+      parameters:
+        - in: header
+          name: x-paystack-signature
+          required: true
+          schema: { type: string }
+          description: HMAC SHA-512 of the raw request body, keyed with the Paystack secret key.
+      requestBody:
+        required: true
+        description: The raw Paystack event payload (verified as received; not re-serialised).
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PaystackEvent' }
+      responses:
+        '200':
+          description: Accepted (including duplicates — the endpoint is idempotent).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WebhookAck' }
+        '401':
+          description: Signature missing or invalid — no state change performed.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /verify/{ref}:
+    get:
+      tags: [public]
+      operationId: verifyCertificate
+      summary: Public certificate verification (no auth, no PII)
+      description: >
+        Returns whether a sealed certificate is valid, its verdict, the property's location
+        (LGA / state / locality only), the content fingerprint and its chain link, and whether
+        it has been anchored. Contains no personal data. An unknown or unsealed reference
+        returns valid=false rather than an error.
+      parameters:
+        - in: path
+          name: ref
+          required: true
+          schema: { type: string, format: uuid }
+          description: The check (certificate) reference.
+      responses:
+        '200':
+          description: Verification payload (no PII)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VerifyResult' }
+
 components:
-  schemas: {}
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: A Supabase user JWT. The database's RLS and FSM triggers enforce what the caller may do.
+    paystackSignature:
+      type: apiKey
+      in: header
+      name: x-paystack-signature
+      description: Gateway-computed HMAC SHA-512 of the raw body. Not a user credential.
+
+  parameters:
+    OrderId:
+      in: path
+      name: orderId
+      required: true
+      schema: { type: string, format: uuid }
+    CheckId:
+      in: path
+      name: checkId
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    BadRequest:
+      description: Malformed request
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Unauthorized:
+      description: Missing or invalid credentials
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Forbidden:
+      description: Authenticated but not permitted (RLS / role / state-machine gate)
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    NotFound:
+      description: Target not found or not visible to the caller
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  schemas:
+    VerdictColour:
+      type: string
+      enum: [green, amber, red, unresolved]
+    EvidenceKind:
+      type: string
+      enum: [register_photo, receipt, coordinate, note]
+    CheckState:
+      type: string
+      enum: [initiated, assigned, in_progress, in_review, returned_for_fix, exception, finalized, rejected]
+
+    FanOutResult:
+      type: object
+      required: [order_id, checks_created]
+      properties:
+        order_id: { type: string, format: uuid }
+        already_verified: { type: boolean }
+        checks_created: { type: integer, minimum: 0 }
+
+    AssignRequest:
+      type: object
+      required: [worker_id]
+      properties:
+        worker_id:
+          type: string
+          format: uuid
+          description: A user holding the partner or field_agent role.
+    AssignResult:
+      type: object
+      required: [check_id, assigned_to, state]
+      properties:
+        check_id: { type: string, format: uuid }
+        assigned_to: { type: string, format: uuid }
+        state: { $ref: '#/components/schemas/CheckState' }
+
+    EvidenceRequest:
+      type: object
+      required: [kind, content_hash]
+      properties:
+        kind: { $ref: '#/components/schemas/EvidenceKind' }
+        content_hash:
+          type: string
+          description: SHA-256 (hex) computed on the capturing device at the moment of capture.
+        storage_ref:
+          type: string
+          nullable: true
+          description: Pointer to the raw file in storage. Never returned by public endpoints.
+        gps_lat: { type: number, nullable: true }
+        gps_lng: { type: number, nullable: true }
+        gps_accuracy: { type: number, nullable: true }
+        captured_at: { type: string, format: date-time, nullable: true }
+        device_id: { type: string, nullable: true }
+    EvidenceResult:
+      type: object
+      required: [evidence_id]
+      properties:
+        evidence_id: { type: string, format: uuid }
+
+    SealRequest:
+      type: object
+      required: [colour, explanation]
+      properties:
+        colour: { $ref: '#/components/schemas/VerdictColour' }
+        explanation:
+          type: string
+          description: The reviewer's plain-language justification for the verdict.
+    SealResult:
+      type: object
+      required: [check_id, verdict, content_hash, prev_hash, commitment_id]
+      properties:
+        check_id: { type: string, format: uuid }
+        verdict: { $ref: '#/components/schemas/VerdictColour' }
+        content_hash:
+          type: string
+          description: 64-char hex SHA-256 fingerprint of the verification's content.
+        prev_hash:
+          type: string
+          description: The previous chain head (64 zeros for the first commitment).
+        commitment_id: { type: string, format: uuid }
+
+    PaystackEvent:
+      type: object
+      description: Opaque Paystack event. Verified as received; only the fields below are read.
+      properties:
+        event: { type: string, example: charge.success }
+        data:
+          type: object
+          properties:
+            reference: { type: string, description: Gateway transaction reference. }
+            metadata:
+              type: object
+              properties:
+                order_id: { type: string, format: uuid }
+      additionalProperties: true
+    WebhookAck:
+      type: object
+      required: [received]
+      properties:
+        received: { type: boolean }
+        already_verified: { type: boolean }
+        checks_created: { type: integer }
+
+    VerifyResult:
+      type: object
+      required: [valid]
+      properties:
+        valid: { type: boolean }
+        verdict: { $ref: '#/components/schemas/VerdictColour' }
+        check_state: { $ref: '#/components/schemas/CheckState' }
+        service_code: { type: string }
+        property:
+          type: object
+          description: Location only — no personal data.
+          properties:
+            lga: { type: string }
+            state: { type: string }
+            locality: { type: string }
+        sealed_at: { type: string, format: date-time, nullable: true }
+        content_hash: { type: string, nullable: true }
+        prev_hash: { type: string, nullable: true }
+        anchored: { type: boolean }
+        anchor_ref: { type: string, nullable: true }
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+        detail: { type: string }
