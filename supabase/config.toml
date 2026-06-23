@@ -21,3 +21,8 @@ port = 54323
 [auth]
 enabled = true
 site_url = "http://localhost:3000"
+
+[functions.verify-certificate]
+   verify_jwt = false
+   [functions.paystack-webhook]
+   verify_jwt = false

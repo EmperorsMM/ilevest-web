@@ -8,7 +8,7 @@
 create table public.service_catalogue (
   code       text primary key,                 -- e.g. C1-LR-01
   title      text not null,
-  category   text not null,                     -- LR | SG | CT | PE | FD | KY (maps to partner desks)
+  category   text not null,                     -- LR | SG | CT | PE | FD (maps to partner desks)
   active     boolean not null default true,
   sort       int not null default 0,
   created_at timestamptz not null default now()
@@ -26,29 +26,56 @@ comment on table public.bundle_service is 'Which services each bundle expands to
 alter table public.bundle_service enable row level security;
 create policy bundle_service_select on public.bundle_service for select to authenticated using (true);
 
--- ---- seed: Phase 1 catalogue ----
--- NOTE: C1-KY-01 (Persons & Entities / KYC) is added per the design-team bundle ruling.
--- Its exact code/title should be reconciled against the locked Service Catalogue (PRD 8.2);
--- it is reference data, changed without code if the canonical code differs.
+-- ---- seed: the locked Phase 1 Service Catalogue (single source — no inference) ----
+-- Five desks: LR, SG, CT, PE, FD. Codes and titles are the design-team-locked catalogue.
+-- Codes not in a launch bundle (LR-04/06/07, SG-03/04, CT-03/04) are seeded so they exist as
+-- individual a-la-carte / Wave-2 selectable services.
 insert into public.service_catalogue(code,title,category,sort) values
-  ('C1-LR-01','Land Registry title search','LR',10),
-  ('C1-SG-01','Surveyor-General chart & plan check','SG',20),
-  ('C1-CT-01','Court records search (litigation / encumbrance)','CT',30),
-  ('C1-PE-01','Probate & estate check','PE',40),
-  ('C1-FD-01','Field inspection (site visit)','FD',50),
-  ('C1-KY-01','Persons & Entities (KYC) check','KY',60);
+  -- Desk 1 — Lands Registries & Bureaus
+  ('C1-LR-01','Title & Ownership Search','LR',10),
+  ('C1-LR-02','Document Authenticity Check','LR',11),
+  ('C1-LR-03','Encumbrance Search','LR',12),
+  ('C1-LR-04','Consent & Stamping Status Check','LR',13),
+  ('C1-LR-05','Acquisition / Excision / Gazette Status','LR',14),
+  ('C1-LR-06','Deed Registration Tracking','LR',15),
+  ('C1-LR-07','CTC Retrieval — Registry Instruments','LR',16),
+  -- Desk 2 — Office of the Surveyor-General
+  ('C1-SG-01','Survey Plan Authentication','SG',20),
+  ('C1-SG-02','Charting / Land Status Report','SG',21),
+  ('C1-SG-03','Coordinate & Overlap Check','SG',22),
+  ('C1-SG-04','Plan-to-Ground Match','SG',23),
+  -- Desk 3 — Courts & Probate Registries
+  ('C1-CT-01','Probate / Letters of Administration Verification','CT',30),
+  ('C1-CT-02','Litigation / Pending Suit Search','CT',31),
+  ('C1-CT-03','Judgment Search','CT',32),
+  ('C1-CT-04','CTC Retrieval — Court Records','CT',33),
+  -- Desk 4 — Persons & Entities
+  ('C1-PE-01','Corporate Seller Check','PE',40),
+  ('C1-PE-02','Identity Verification (NIN/BVN consistency)','PE',41),
+  ('C1-PE-03','Professional Licence Verification','PE',42),
+  -- Field Services
+  ('C1-FD-01','Physical Site Inspection','FD',50);
 
--- ---- seed: bundle compositions (ratified by the design team) ----
--- Essential   = Land Registry + Surveyor-General
--- Complete    = Land Registry + Surveyor-General + Court (standard; Probate/KYC are situational add-ons)
--- Inheritance = Land Registry + Court + Probate
--- Diaspora    = Complete's contents + Field inspection + Persons/Entities (KYC)
+-- ---- seed: bundle compositions (against the locked codes) ----
+-- Essential   = LR-01 (Title & Ownership) + SG-02 (Charting / Land Status)
+-- Complete    = LR-01 + LR-02 + LR-03 + LR-05 + SG-01 + SG-02 + CT-02
+--               (CT-01 Probate added per-order only when an estate/deceased owner is involved; PE situational)
+-- Inheritance = LR-01 + CT-01 (Probate) + CT-02 (Litigation)   — Courts & Probate desk, no PE
+-- Diaspora    = Complete's contents + FD-01 + PE-02
+--               (Identity always applies; PE-01 Corporate Seller / PE-03 Licence added per case — FLAGGED below)
 -- ala_carte / custom builds have no rows here (services are chosen individually via order_line).
 insert into public.bundle_service(bundle,service_code) values
-  ('essential','C1-LR-01'), ('essential','C1-SG-01'),
-  ('complete','C1-LR-01'), ('complete','C1-SG-01'), ('complete','C1-CT-01'),
-  ('inheritance','C1-LR-01'), ('inheritance','C1-CT-01'), ('inheritance','C1-PE-01'),
-  ('diaspora','C1-LR-01'), ('diaspora','C1-SG-01'), ('diaspora','C1-CT-01'), ('diaspora','C1-FD-01'), ('diaspora','C1-KY-01');
+  ('essential','C1-LR-01'), ('essential','C1-SG-02'),
+  ('complete','C1-LR-01'), ('complete','C1-LR-02'), ('complete','C1-LR-03'), ('complete','C1-LR-05'),
+  ('complete','C1-SG-01'), ('complete','C1-SG-02'), ('complete','C1-CT-02'),
+  ('inheritance','C1-LR-01'), ('inheritance','C1-CT-01'), ('inheritance','C1-CT-02'),
+  ('diaspora','C1-LR-01'), ('diaspora','C1-LR-02'), ('diaspora','C1-LR-03'), ('diaspora','C1-LR-05'),
+  ('diaspora','C1-SG-01'), ('diaspora','C1-SG-02'), ('diaspora','C1-CT-02'),
+  ('diaspora','C1-FD-01'), ('diaspora','C1-PE-02');
+-- FLAGGED interpretation: the ruling says Diaspora includes "C1-PE-01/02/03 as applicable". Identity
+-- (PE-02) is seeded as always-included; Corporate Seller (PE-01) and Professional Licence (PE-03) are
+-- treated as situational add-ons (added per order via order_line), mirroring how Complete handles
+-- Probate/PE. If Diaspora's fixed SKU should always contain all three PE checks, that is a one-line change.
 
 grant select on public.service_catalogue to authenticated, anon;
 grant select on public.bundle_service   to authenticated;
