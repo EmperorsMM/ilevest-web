@@ -48,25 +48,40 @@ insert into public.payment(order_id,service_fee,government_fee_total) values ('c
 reset role;
 do $$ declare nlines int; begin
   select count(*) into nlines from public.order_line where order_id='cc000000-0000-0000-0000-000000000001';
-  if nlines <> 5 then raise exception 'FAIL: complete bundle should add 5 lines, got %', nlines; end if;
-  raise notice 'PASS: complete bundle expanded to 5 order lines';
+  if nlines <> 3 then raise exception 'FAIL: complete bundle should add 3 lines, got %', nlines; end if;
+  raise notice 'PASS: complete bundle expanded to 3 order lines';
 end $$;
 
 select set_config('t.r1', public.confirm_payment('cc000000-0000-0000-0000-000000000001','paystack_ref_1')::text, false);
 do $$ declare res jsonb := current_setting('t.r1')::jsonb; nc int; begin
-  if (res->>'checks_created')::int <> 5 then raise exception 'FAIL: fan-out should create 5 checks, got %', res->>'checks_created'; end if;
+  if (res->>'checks_created')::int <> 3 then raise exception 'FAIL: fan-out should create 3 checks, got %', res->>'checks_created'; end if;
   if (res->>'already_verified')::boolean then raise exception 'FAIL: first confirm should not be already_verified'; end if;
   select count(*) into nc from public.check_item where order_id='cc000000-0000-0000-0000-000000000001';
-  if nc <> 5 then raise exception 'FAIL: order1 should have 5 checks, got %', nc; end if;
-  raise notice 'PASS: confirm_payment created 5 checks from the bundle';
+  if nc <> 3 then raise exception 'FAIL: order1 should have 3 checks, got %', nc; end if;
+  raise notice 'PASS: confirm_payment created 3 checks from the bundle';
 end $$;
 select set_config('t.r2', public.confirm_payment('cc000000-0000-0000-0000-000000000001','paystack_ref_1')::text, false);
 do $$ declare res jsonb := current_setting('t.r2')::jsonb; nc int; begin
   if not (res->>'already_verified')::boolean then raise exception 'FAIL: second confirm should be already_verified'; end if;
   if (res->>'checks_created')::int <> 0 then raise exception 'FAIL: second confirm should create 0 checks'; end if;
   select count(*) into nc from public.check_item where order_id='cc000000-0000-0000-0000-000000000001';
-  if nc <> 5 then raise exception 'FAIL: still expect 5 checks after duplicate webhook, got %', nc; end if;
+  if nc <> 3 then raise exception 'FAIL: still expect 3 checks after duplicate webhook, got %', nc; end if;
   raise notice 'PASS: duplicate webhook is idempotent (no double fan-out)';
+end $$;
+
+\echo ''
+\echo '################ PART 1b — diaspora bundle includes the Persons/Entities (KYC) check ################'
+set role authenticated; set app.user_id = :ops;
+insert into public.order_matter(id,client_id,property_id,bundle) values ('cc000000-0000-0000-0000-000000000003',:client1,'aa000000-0000-0000-0000-000000000001','diaspora');
+select app.add_order_lines_for_bundle('cc000000-0000-0000-0000-000000000003','diaspora');
+insert into public.payment(order_id,service_fee,government_fee_total) values ('cc000000-0000-0000-0000-000000000003', 120000, 90000);
+reset role;
+select set_config('t.rd', public.confirm_payment('cc000000-0000-0000-0000-000000000003','paystack_ref_3')::text, false);
+do $$ declare res jsonb := current_setting('t.rd')::jsonb; nk int; begin
+  if (res->>'checks_created')::int <> 5 then raise exception 'FAIL: diaspora should create 5 checks, got %', res->>'checks_created'; end if;
+  select count(*) into nk from public.check_item where order_id='cc000000-0000-0000-0000-000000000003' and service_code='C1-KY-01';
+  if nk <> 1 then raise exception 'FAIL: diaspora should include the Persons/Entities (KYC) check'; end if;
+  raise notice 'PASS: diaspora expands to 5 checks including the Persons/Entities (KYC) check';
 end $$;
 
 \echo ''
