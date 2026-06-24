@@ -141,7 +141,7 @@ returns jsonb language sql stable security definer set search_path = '' as $$
                            then 'Sealed and protected by its fingerprint and the append-only chain; the public anchor is applied at the next daily batch.'
                          when ab.anchor_ref is null
                            then 'Sealed and committed to a daily Merkle root; the external public timestamp and mirror are being recorded.'
-                         else 'Sealed and publicly anchored: fingerprint + append-only chain + a daily Merkle root timestamped publicly and mirrored.'
+                         else 'Sealed and publicly anchored: fingerprint, append-only chain, and a daily Merkle root externally timestamped against public infrastructure. See anchor_ref for the witnesses.'
                        end
      )
      from public.check_item ci
