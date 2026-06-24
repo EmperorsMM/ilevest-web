@@ -90,3 +90,6 @@ jobs:
 
       - name: Paystack webhook signature verification test
         run: node --experimental-strip-types supabase/functions/_shared/paystack.test.ts
+
+      - name: Anchor orchestration test
+        run: node --experimental-strip-types supabase/functions/_shared/anchor.test.ts
