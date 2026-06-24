@@ -1,9 +1,9 @@
 -- =============================================================================
 -- Ilevest — Build Stage 3 combined migration (for the Supabase SQL Editor)
--- Apply AFTER Stage 1 and Stage 2 are already in place. Adds the proof-layer
--- anchoring core: the RFC 6962 Merkle-root function, the daily anchor_pending
--- job, the write-once external-proof attach, and the sealed-vs-anchored honest
--- certificate. One transaction — all or nothing. Re-runnable.
+-- Apply AFTER Stage 1 and Stage 2. Adds the proof-layer anchoring core: RFC 6962
+-- Merkle root, the daily anchor_pending job, the write-once external-proof attach,
+-- and the sealed / batched / publicly-anchored honest certificate. One transaction;
+-- re-runnable. Safe to re-apply to refresh verify_certificate.
 -- =============================================================================
 begin;
 
@@ -139,15 +139,18 @@ returns jsonb language sql stable security definer set search_path = '' as $$
        'sealed_at',    ci.sealed_at,
        'content_hash', c.content_hash,
        'prev_hash',    c.prev_hash,
-       'anchored',     (c.batch_id is not null),
-       'anchored_at',  ab.anchored_at,
-       'merkle_root',  ab.merkle_root,
-       'anchor_ref',   ab.anchor_ref,
+       'anchored',             (c.batch_id is not null),
+       'externally_witnessed', (ab.anchor_ref is not null),
+       'anchored_at',          ab.anchored_at,
+       'merkle_root',          ab.merkle_root,
+       'anchor_ref',           ab.anchor_ref,
        'protection',   case
                          when c.id is null then null
-                         when c.batch_id is not null
-                           then 'Sealed and publicly anchored: fingerprint + append-only chain + a daily Merkle root timestamped publicly and mirrored.'
-                         else 'Sealed and protected by its fingerprint and the append-only chain; the public anchor is applied at the next daily batch.'
+                         when c.batch_id is null
+                           then 'Sealed and protected by its fingerprint and the append-only chain; the public anchor is applied at the next daily batch.'
+                         when ab.anchor_ref is null
+                           then 'Sealed and committed to a daily Merkle root; the external public timestamp and mirror are being recorded.'
+                         else 'Sealed and publicly anchored: fingerprint + append-only chain + a daily Merkle root timestamped publicly and mirrored.'
                        end
      )
      from public.check_item ci

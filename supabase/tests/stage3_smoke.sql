@@ -164,16 +164,16 @@ do $$ declare t text; begin
 end $$;
 
 \echo ''
-\echo '################ PART B4 — certificate AFTER the daily anchor (honest) ################'
+\echo '################ PART B4 — certificate after batching, before the external proof ################'
 set role anon;
 select set_config('t.ca', coalesce(public.verify_certificate(current_setting('t.k1')::uuid)::text,'{"valid":false}'), false);
 do $$ declare res jsonb := current_setting('t.ca')::jsonb; begin
   if not (res->>'anchored')::boolean then raise exception 'FAIL: after the batch, anchored must be true'; end if;
   if (res->>'merkle_root') !~ '^[0-9a-f]{64}$' then raise exception 'FAIL: anchored certificate must carry the merkle_root'; end if;
   if (res->>'anchored_at') is null then raise exception 'FAIL: anchored certificate must carry anchored_at'; end if;
-  if (res->>'protection') not ilike '%publicly anchored%' then raise exception 'FAIL: certificate must state it is publicly anchored'; end if;
-  -- still no PII beyond the property locality that the buyer-facing cert intentionally shows
-  raise notice 'PASS: after anchoring, certificate shows anchored=true with the merkle_root and anchored_at';
+  if (res->>'externally_witnessed')::boolean then raise exception 'FAIL: not externally witnessed until the proof is recorded'; end if;
+  if (res->>'protection') not ilike '%being recorded%' then raise exception 'FAIL: pre-proof, certificate should state the external proof is being recorded'; end if;
+  raise notice 'PASS: batched but pre-proof, certificate is anchored=true, externally_witnessed=false, proof being recorded (honest)';
 end $$;
 reset role;
 
@@ -199,13 +199,15 @@ do $$ begin
   exception when sqlstate '23514' then raise notice 'PASS: the rest of the batch remains immutable'; return; end;
   raise exception 'FAIL: was able to alter an immutable batch field';
 end $$;
--- the certificate now surfaces the external anchor reference
+-- the certificate now surfaces the external anchor reference and flips to publicly anchored
 set role anon;
 select set_config('t.cr', public.verify_certificate(current_setting('t.k1')::uuid)::text, false);
 do $$ declare res jsonb := current_setting('t.cr')::jsonb; begin
+  if not (res->>'externally_witnessed')::boolean then raise exception 'FAIL: should be externally witnessed once the proof is recorded'; end if;
   if (res->>'anchor_ref') is null or (res->>'anchor_ref') not ilike '%mirror%' then
     raise exception 'FAIL: certificate should carry the anchor_ref once recorded'; end if;
-  raise notice 'PASS: certificate surfaces the external anchor reference (OTS + mirror)';
+  if (res->>'protection') not ilike '%publicly anchored%' then raise exception 'FAIL: certificate should now state it is publicly anchored'; end if;
+  raise notice 'PASS: once the proof is recorded, certificate is externally_witnessed=true and publicly anchored (OTS + mirror)';
 end $$;
 reset role;
 

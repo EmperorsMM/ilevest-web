@@ -130,15 +130,18 @@ returns jsonb language sql stable security definer set search_path = '' as $$
        'sealed_at',    ci.sealed_at,
        'content_hash', c.content_hash,
        'prev_hash',    c.prev_hash,
-       'anchored',     (c.batch_id is not null),
-       'anchored_at',  ab.anchored_at,
-       'merkle_root',  ab.merkle_root,
-       'anchor_ref',   ab.anchor_ref,
+       'anchored',             (c.batch_id is not null),
+       'externally_witnessed', (ab.anchor_ref is not null),
+       'anchored_at',          ab.anchored_at,
+       'merkle_root',          ab.merkle_root,
+       'anchor_ref',           ab.anchor_ref,
        'protection',   case
                          when c.id is null then null
-                         when c.batch_id is not null
-                           then 'Sealed and publicly anchored: fingerprint + append-only chain + a daily Merkle root timestamped publicly and mirrored.'
-                         else 'Sealed and protected by its fingerprint and the append-only chain; the public anchor is applied at the next daily batch.'
+                         when c.batch_id is null
+                           then 'Sealed and protected by its fingerprint and the append-only chain; the public anchor is applied at the next daily batch.'
+                         when ab.anchor_ref is null
+                           then 'Sealed and committed to a daily Merkle root; the external public timestamp and mirror are being recorded.'
+                         else 'Sealed and publicly anchored: fingerprint + append-only chain + a daily Merkle root timestamped publicly and mirrored.'
                        end
      )
      from public.check_item ci
