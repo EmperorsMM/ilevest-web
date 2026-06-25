@@ -59,7 +59,7 @@ jobs:
       - name: Build a fresh, fully-migrated database for each stage
         run: |
           set -e
-          for db in ilv_s1 ilv_s2 ilv_s3; do
+          for db in ilv_s1 ilv_s2 ilv_s3 ilv_s4; do
             createdb "$db"
             for f in $(ls supabase/migrations/*.sql | sort); do
               psql -d "$db" -v ON_ERROR_STOP=1 -q -f "$f"
@@ -75,6 +75,9 @@ jobs:
 
       - name: Stage 3 smoke test (Merkle root, daily anchoring, proof attach, certificate honesty)
         run: psql -d ilv_s3 -v ON_ERROR_STOP=1 -q -f supabase/tests/stage3_smoke.sql
+
+      - name: Stage 4 smoke test (Client Portal read-model: quote, buyer status, ownership)
+        run: psql -d ilv_s4 -v ON_ERROR_STOP=1 -q -f supabase/tests/stage4_smoke.sql
 
   functions:
     name: Edge Function unit tests
