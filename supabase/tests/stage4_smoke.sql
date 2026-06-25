@@ -144,4 +144,60 @@ end $$;
 reset role;
 
 \echo ''
+\echo '################ PART D — signup linkage logic (auth trigger verified on dev) ################'
+-- a fresh signup (e.g. Google) creates the portable app_user + client role, UNVERIFIED
+reset role;
+select app.link_auth_user('88888888-8888-8888-8888-888888888888', 'Tunde A', 'tunde@example.ng', 'google');
+do $$ begin
+  if not exists (select 1 from public.app_user where id='88888888-8888-8888-8888-888888888888' and auth_provider='google')
+    then raise exception 'FAIL: signup should create the app_user keyed by the auth uid'; end if;
+  if not exists (select 1 from public.user_role where user_id='88888888-8888-8888-8888-888888888888' and role='client')
+    then raise exception 'FAIL: signup should grant the client role'; end if;
+  if (select identity_verified from public.app_user where id='88888888-8888-8888-8888-888888888888')
+    then raise exception 'FAIL: a social/email signup must NOT be identity-verified'; end if;
+  raise notice 'PASS: signup creates app_user(id=auth uid)+client role with identity_verified=false (access is not identity)';
+end $$;
+-- signing in again refreshes the profile, never duplicates the role
+select app.link_auth_user('88888888-8888-8888-8888-888888888888', 'Tunde Adewale', 'tunde@example.ng', 'google');
+do $$ begin
+  if (select name from public.app_user where id='88888888-8888-8888-8888-888888888888') <> 'Tunde Adewale'
+    then raise exception 'FAIL: re-link should refresh the name'; end if;
+  if (select count(*) from public.user_role where user_id='88888888-8888-8888-8888-888888888888' and role='client') <> 1
+    then raise exception 'FAIL: client role must not duplicate'; end if;
+  raise notice 'PASS: re-link is idempotent (profile refreshed, single client role)';
+end $$;
+-- give this user a real C1-PE-02 check via the normal pipeline
+insert into public.property(id,lga,state,locality) values ('aa000000-0000-0000-0000-0000000000e2','Eti-Osa','Lagos','Ikoyi');
+insert into public.order_matter(id,client_id,property_id,bundle) values ('cc000000-0000-0000-0000-0000000000e2','88888888-8888-8888-8888-888888888888','aa000000-0000-0000-0000-0000000000e2','ala_carte');
+insert into public.order_line(order_id,service_code) values ('cc000000-0000-0000-0000-0000000000e2','C1-PE-02');
+insert into public.payment(order_id,service_fee,government_fee_total) values ('cc000000-0000-0000-0000-0000000000e2',0,0);
+select public.confirm_payment('cc000000-0000-0000-0000-0000000000e2','ref_pe02');
+select set_config('t.pe',(select id::text from public.check_item where order_id='cc000000-0000-0000-0000-0000000000e2' and service_code='C1-PE-02'),false);
+-- a NON-PE-02 check cannot verify identity
+do $$ begin
+  begin
+    perform app.mark_identity_verified('88888888-8888-8888-8888-888888888888', current_setting('t.c1')::uuid);
+    raise exception 'FAIL: identity must not be verifiable via a non-PE-02 check';
+  exception when check_violation then
+    raise notice 'PASS: identity cannot be marked verified through a non-PE-02 check (boundary is structural)';
+  end;
+end $$;
+-- the C1-PE-02 check is the one path that verifies identity
+select app.mark_identity_verified('88888888-8888-8888-8888-888888888888', current_setting('t.pe')::uuid);
+do $$ begin
+  if not (select identity_verified from public.app_user where id='88888888-8888-8888-8888-888888888888')
+    then raise exception 'FAIL: a C1-PE-02 check should mark identity verified'; end if;
+  if (select identity_verified_by from public.app_user where id='88888888-8888-8888-8888-888888888888') <> current_setting('t.pe')::uuid
+    then raise exception 'FAIL: should record which check verified the identity'; end if;
+  raise notice 'PASS: identity_verified becomes TRUE only through the C1-PE-02 verification path';
+end $$;
+-- a later sign-in can neither undo nor fake that verification
+select app.link_auth_user('88888888-8888-8888-8888-888888888888', 'Tunde Adewale', 'tunde@example.ng', 'google');
+do $$ begin
+  if not (select identity_verified from public.app_user where id='88888888-8888-8888-8888-888888888888')
+    then raise exception 'FAIL: re-link must not disturb a real verification'; end if;
+  raise notice 'PASS: the signup path never alters identity verification (boundary holds both ways)';
+end $$;
+
+\echo ''
 \echo '################ ALL STAGE 4 ASSERTIONS PASSED ################'
