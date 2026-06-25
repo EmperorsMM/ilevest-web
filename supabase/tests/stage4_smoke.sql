@@ -200,4 +200,123 @@ do $$ begin
 end $$;
 
 \echo ''
+\echo '################ PART E — public browsing: anon can read the catalogue & bundles ################'
+set role anon;
+do $$ begin
+  if (select count(*) from public.service_catalogue) = 0 then raise exception 'FAIL: anon should read the service catalogue (public menu)'; end if;
+  if (select count(*) from public.bundle_service)   = 0 then raise exception 'FAIL: anon should read the bundle compositions'; end if;
+  raise notice 'PASS: anon can browse the catalogue and bundle compositions (no signup to browse)';
+end $$;
+reset role;
+
+\echo ''
+\echo '################ PART F - Admin provisioning + the CISO governance boundary ################'
+reset role;
+insert into public.app_user(id,name,email_or_phone) values
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','Admin','admin@x'),
+  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb','New Staff','staff@x');
+insert into public.user_role(user_id,role) values ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa','admin');
+-- the boundary, proven at the capability level: admin governs, but is NOT ops/reviewer
+set app.user_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+do $$ begin
+  if not app.is_admin()  then raise exception 'FAIL: admin should be admin'; end if;
+  if not app.is_staff()  then raise exception 'FAIL: admin should be staff (read visibility for governance)'; end if;
+  if app.is_ops()        then raise exception 'FAIL: admin must NOT count as ops (cannot assign/move money)'; end if;
+  if app.is_reviewer()   then raise exception 'FAIL: admin must NOT count as reviewer (cannot seal verdicts)'; end if;
+  raise notice 'PASS: admin is_admin + is_staff, but NOT is_ops and NOT is_reviewer (governance, not omnipotence)';
+end $$;
+-- an admin provisions a Reviewer account (governance capability)
+select public.admin_create_or_assign('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb','reviewer');
+do $$ begin
+  if not exists (select 1 from public.user_role where user_id='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' and role='reviewer')
+    then raise exception 'FAIL: admin should provision a reviewer'; end if;
+  raise notice 'PASS: an admin can create/assign a staff role';
+end $$;
+-- admin may NOT mint another admin through provisioning (bootstrap-only)
+do $$ begin
+  begin perform public.admin_create_or_assign('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb','admin');
+    raise exception 'FAIL: admin must not mint another admin here';
+  exception when check_violation then raise notice 'PASS: admin cannot grant the admin role through provisioning'; end;
+end $$;
+-- end-to-end: an admin cannot seal a verdict, and cannot assign work
+do $$ begin
+  begin perform public.seal_check(current_setting('t.c2')::uuid, 'green', 'admin tries to seal');
+    raise exception 'FAIL: an admin must not be able to seal a verdict';
+  exception when others then if sqlerrm like 'FAIL:%' then raise; end if;
+    raise notice 'PASS: an admin CANNOT seal a verdict (end-to-end)'; end;
+end $$;
+do $$ begin
+  begin perform public.assign_check(current_setting('t.c1')::uuid, '44444444-4444-4444-4444-444444444444');
+    raise exception 'FAIL: an admin must not be able to assign work';
+  exception when others then if sqlerrm like 'FAIL:%' then raise; end if;
+    raise notice 'PASS: an admin CANNOT assign work (end-to-end)'; end;
+end $$;
+reset role;
+-- a non-admin (ops) may NOT provision accounts
+set app.user_id = '22222222-2222-2222-2222-222222222222';
+do $$ begin
+  begin perform public.admin_create_or_assign('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb','partner');
+    raise exception 'FAIL: a non-admin must not provision accounts';
+  exception when insufficient_privilege then raise notice 'PASS: a non-admin (ops) cannot provision accounts'; end;
+end $$;
+reset role;
+
+\echo ''
+\echo '################ PART G - Client deletion: deactivate-and-anonymize, with guards ################'
+reset role;
+-- (b) client1 (PART B) has a PAID order with work in progress -> refused
+set app.user_id = '66666666-6666-6666-6666-666666666666';
+do $$ declare r jsonb := public.request_account_deletion(); begin
+  if (r->>'deleted')::boolean then raise exception 'FAIL: a paid in-progress client must not be deletable'; end if;
+  raise notice 'PASS: client with a verification in progress is refused';
+end $$;
+reset role;
+-- (a) a client who owes money (unpaid invoice) -> refused
+insert into public.app_user(id,name,email_or_phone) values ('dddddddd-dddd-dddd-dddd-dddddddddddd','Owing Client','owe@x');
+insert into public.user_role(user_id,role) values ('dddddddd-dddd-dddd-dddd-dddddddddddd','client');
+insert into public.property(id,lga,state,locality) values ('aa000000-0000-0000-0000-0000000000f1','Eti-Osa','Lagos','Ikoyi');
+insert into public.order_matter(id,client_id,property_id,bundle) values ('cc000000-0000-0000-0000-0000000000f1','dddddddd-dddd-dddd-dddd-dddddddddddd','aa000000-0000-0000-0000-0000000000f1','ala_carte');
+insert into public.payment(order_id,service_fee,government_fee_total) values ('cc000000-0000-0000-0000-0000000000f1', 50000, 0);
+set app.user_id = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+do $$ declare r jsonb := public.request_account_deletion(); begin
+  if (r->>'deleted')::boolean then raise exception 'FAIL: a client who owes money must not be deletable'; end if;
+  raise notice 'PASS: client with an unpaid invoice is refused';
+end $$;
+reset role;
+-- a clean client with a FINALIZED sealed verification -> can delete; record survives & still verifies
+insert into public.app_user(id,name,email_or_phone,nin_ref) values ('cccccccc-cccc-cccc-cccc-cccccccccccc','Jane Buyer','jane@example.ng','NIN-REF-XYZ');
+insert into public.user_role(user_id,role) values ('cccccccc-cccc-cccc-cccc-cccccccccccc','client');
+insert into public.property(id,lga,state,locality) values ('aa000000-0000-0000-0000-0000000000f2','Eti-Osa','Lagos','Ikoyi');
+insert into public.order_matter(id,client_id,property_id,bundle) values ('cc000000-0000-0000-0000-0000000000f2','cccccccc-cccc-cccc-cccc-cccccccccccc','aa000000-0000-0000-0000-0000000000f2','ala_carte');
+insert into public.order_line(order_id,service_code) values ('cc000000-0000-0000-0000-0000000000f2','C1-LR-01');
+insert into public.payment(order_id,service_fee,government_fee_total) values ('cc000000-0000-0000-0000-0000000000f2', 50000, 0);
+select public.confirm_payment('cc000000-0000-0000-0000-0000000000f2','ref_clean');
+select set_config('t.fc',(select id::text from public.check_item where order_id='cc000000-0000-0000-0000-0000000000f2' and service_code='C1-LR-01'),false);
+set app.user_id = '22222222-2222-2222-2222-222222222222'; select public.assign_check(current_setting('t.fc')::uuid, '44444444-4444-4444-4444-444444444444');
+set app.user_id = '44444444-4444-4444-4444-444444444444';
+  update public.check_item set state='in_progress' where id=current_setting('t.fc')::uuid;
+  update public.check_item set state='in_review'  where id=current_setting('t.fc')::uuid;
+set app.user_id = '33333333-3333-3333-3333-333333333333'; select public.seal_check(current_setting('t.fc')::uuid,'green','clear title');
+reset role;
+set app.user_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+do $$ declare r jsonb := public.request_account_deletion(); begin
+  if not (r->>'deleted')::boolean then raise exception 'FAIL: a clean client should be deletable: %', r->>'reason'; end if;
+  raise notice 'PASS: a clean client can close their account';
+end $$;
+reset role;
+do $$ declare u public.app_user; begin
+  select * into u from public.app_user where id='cccccccc-cccc-cccc-cccc-cccccccccccc';
+  if u.email_or_phone is not null or u.nin_ref is not null or u.name <> 'Former client' or not u.anonymized
+    then raise exception 'FAIL: personal data must be anonymised after deletion'; end if;
+  raise notice 'PASS: after deletion, personal login/contact data is removed (anonymised)';
+end $$;
+set role anon;
+do $$ declare cert jsonb := public.verify_certificate(current_setting('t.fc')::uuid); begin
+  if not (cert->>'valid')::boolean or (cert->>'verdict') <> 'green'
+    then raise exception 'FAIL: the public verification must still resolve after account deletion'; end if;
+  raise notice 'PASS: the sealed verification survives anonymised and its public link still verifies (GREEN)';
+end $$;
+reset role;
+
+\echo ''
 \echo '################ ALL STAGE 4 ASSERTIONS PASSED ################'
