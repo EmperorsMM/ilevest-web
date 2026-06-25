@@ -16,16 +16,21 @@ set search_path = public, extensions, pg_temp;
 \set client2  '''77777777-7777-7777-7777-777777777777'''
 
 \echo ''
-\echo '################ PART A — document checklist (anon) + prices are gone ################'
--- the team supplies the real list; the test seeds its own to prove the mechanism
-insert into public.service_document_requirement(service_code,doc_type,label,why,sort) values
-  ('C1-LR-01','deed','Deed of Assignment','Lets us trace the chain of ownership',1),
-  ('C1-LR-01','receipt','Receipt of Purchase','Confirms the transaction you are verifying',2);
+\echo '################ PART A — document checklist (seeded, de-duplicated union) + prices gone ################'
 set role anon;
-select set_config('t.dc', public.document_checklist(array['C1-LR-01'])::text, false);
-do $$ declare d jsonb := current_setting('t.dc')::jsonb; begin
-  if jsonb_array_length(d) <> 2 then raise exception 'FAIL: checklist should return 2 typically-needed docs, got %', jsonb_array_length(d); end if;
-  raise notice 'PASS: anon sees the per-service document checklist (encouragement, shown while browsing)';
+-- per-service: C1-LR-01 has 4 listed documents, Helpful ranked first
+select set_config('t.dc1', public.document_checklist(array['C1-LR-01'])::text, false);
+do $$ declare d jsonb := current_setting('t.dc1')::jsonb; begin
+  if jsonb_array_length(d) <> 4 then raise exception 'FAIL: C1-LR-01 should have 4 checklist items, got %', jsonb_array_length(d); end if;
+  if (d->0->>'tier') <> 'helpful' then raise exception 'FAIL: Helpful items must rank first'; end if;
+  raise notice 'PASS: per-service checklist returns the seeded items with Helpful first';
+end $$;
+-- a selection spanning two services composes ONE consolidated list and de-duplicates the shared doc
+select set_config('t.dc2', public.document_checklist(array['C1-LR-01','C1-FD-01'])::text, false);
+do $$ declare n int := jsonb_array_length(current_setting('t.dc2')::jsonb); begin
+  -- LR-01 (4) + FD-01 (4) share "Survey plan, if available" exactly -> 7 unique
+  if n <> 7 then raise exception 'FAIL: LR-01+FD-01 should de-duplicate to 7, got %', n; end if;
+  raise notice 'PASS: a multi-service selection yields one consolidated, de-duplicated checklist (7 from 8)';
 end $$;
 reset role;
 do $$ begin

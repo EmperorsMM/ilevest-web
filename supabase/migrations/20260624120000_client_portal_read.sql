@@ -36,13 +36,15 @@ comment on function app.buyer_state(public.check_state) is
 -- ---- per-service "documents typically needed" checklist (reference data) ----
 -- Drives encouragement, never enforcement. The real per-service list is supplied by the team
 -- (drafted from the Service Catalogue client inputs); seeded empty here.
-create table if not exists public.service_document_requirement (
-  service_code text not null references public.service_catalogue(code) on delete cascade,
-  doc_type     text not null,
-  label        text not null,
-  why          text,                    -- why this document strengthens the verification
-  sort         int  not null default 0,
-  primary key (service_code, doc_type)
+-- reference data whose columns changed across drafts: drop & recreate so re-applying on an
+-- environment that has the older shape migrates cleanly (it carries no dependent data).
+drop table if exists public.service_document_requirement cascade;
+create table public.service_document_requirement (
+  service_code   text not null references public.service_catalogue(code) on delete cascade,
+  document_label text not null,
+  tier           text not null check (tier in ('helpful','optional')),  -- two tiers only; no "required"
+  sort           int  not null default 0,
+  primary key (service_code, document_label)
 );
 alter table public.service_document_requirement enable row level security;
 drop policy if exists sdr_select on public.service_document_requirement;
@@ -52,11 +54,18 @@ grant select on public.service_document_requirement to anon, authenticated;
 -- the typically-needed documents for a selection (anon-callable; shown while browsing)
 create or replace function public.document_checklist(p_codes text[])
 returns jsonb language sql stable security definer set search_path = public, extensions, pg_temp as $$
-  select coalesce(jsonb_agg(jsonb_build_object(
-      'service_code', r.service_code, 'doc_type', r.doc_type, 'label', r.label, 'why', r.why
-    ) order by r.service_code, r.sort), '[]'::jsonb)
-  from public.service_document_requirement r
-  where r.service_code = any(p_codes);
+  -- ONE consolidated, de-duplicated list across the selection (documents overlap across services);
+  -- a document Helpful for any selected service is Helpful overall, and Helpful ranks first.
+  select coalesce(jsonb_agg(jsonb_build_object('document_label', document_label, 'tier', tier)
+                            order by tier_rank, document_label), '[]'::jsonb)
+  from (
+    select document_label,
+           case when bool_or(tier = 'helpful') then 'helpful' else 'optional' end as tier,
+           min(case when tier = 'helpful' then 0 else 1 end)                      as tier_rank
+    from public.service_document_requirement
+    where service_code = any(p_codes)
+    group by document_label
+  ) d;
 $$;
 grant execute on function public.document_checklist(text[]) to anon, authenticated, service_role;
 
