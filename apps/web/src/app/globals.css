@@ -145,3 +145,36 @@ a { color: inherit; }
 .auth-toggle { text-align: center; margin-top: 18px; font-size: 14px; color: var(--muted); }
 .auth-toggle button { background: none; border: 0; color: var(--green); font-weight: 700; cursor: pointer; font-size: 14px; padding: 0; }
 .boundary-note { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); text-align: center; line-height: 1.55; }
+
+/* ---- verdict chip variants (amber / red / unresolved) ---- */
+.verdict.a { background: var(--amber-wash); border-color: #E6D6A8; }
+.verdict.r { background: var(--red-wash); border-color: #E6C4C0; }
+.verdict.u { background: var(--paper); border-color: var(--line); }
+.dot.u { background: var(--muted); }
+
+/* ---- client dashboard ---- */
+.dash { padding: 40px 24px 80px; }
+.dash-kicker { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--green); font-weight: 700; margin: 0 0 8px; }
+.topbar button.signin { font: inherit; font-size: 14px; color: var(--muted); background: none; border: 0; cursor: pointer; }
+.topbar button.signin:hover { color: var(--ink); }
+
+/* empty state — the front door for a brand-new account */
+.dash-empty { max-width: 580px; margin: 6vh auto 0; text-align: center; }
+.dash-empty h1 { font-size: 34px; line-height: 1.12; letter-spacing: -0.02em; margin: 0 0 16px; }
+.dash-lead { font-size: 16.5px; line-height: 1.6; color: var(--ink-soft); margin: 0 0 28px; }
+.dash-reassure { font-size: 13.5px; color: var(--muted); margin: 16px 0 0; }
+.btn.lg { font-size: 16px; padding: 14px 26px; border-radius: 11px; }
+
+/* order list */
+.dash-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+.dash-head h1 { font-size: 26px; letter-spacing: -0.02em; margin: 0; }
+.order-grid { display: grid; gap: 14px; }
+.order-card { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 20px 22px; }
+.order-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.order-card h3 { font-size: 17px; font-weight: 700; margin: 0 0 4px; }
+.order-meta { font-size: 13px; color: var(--muted); margin: 0; }
+.order-status { margin-top: 16px; }
+.status-pill { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+.status-sub { font-size: 13px; color: var(--muted); margin: 6px 0 0; line-height: 1.5; }
+.progress { height: 7px; border-radius: 99px; background: var(--green-wash); overflow: hidden; margin: 10px 0 6px; max-width: 320px; }
+.progress > i { display: block; height: 100%; background: var(--green); border-radius: 99px; }

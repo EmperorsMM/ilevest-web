@@ -79,6 +79,9 @@ jobs:
       - name: Stage 4 smoke test (Client Portal read-model: quote, buyer status, ownership)
         run: psql -d ilv_s4 -v ON_ERROR_STOP=1 -q -f supabase/tests/stage4_smoke.sql
 
+      - name: Client dashboard test (my_orders ownership + status/verdict summary)
+        run: psql -d ilv_s4 -v ON_ERROR_STOP=1 -q -f supabase/tests/my_orders_smoke.sql
+
   functions:
     name: Edge Function unit tests
     runs-on: ubuntu-latest
