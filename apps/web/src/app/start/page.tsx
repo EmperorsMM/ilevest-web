@@ -6,6 +6,7 @@
 // All reads are anon RPCs already proven at the database (service_catalogue, bundle_service,
 // document_checklist) with RLS as the real boundary.
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../lib/supabase/client";
 
 type Service = { code: string; title: string; sort: number };
@@ -29,6 +30,7 @@ const deskOf = (code: string) => code.split("-")[1] ?? "";
 
 export default function StartPage() {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  const router = useRouter();
   const [catalogue, setCatalogue] = useState<Service[]>([]);
   const [composition, setComposition] = useState<Record<string, string[]>>({});
   const [mode, setMode] = useState<"bundles" | "custom">("bundles");
@@ -92,6 +94,15 @@ export default function StartPage() {
     for (const s of catalogue) (groups[deskOf(s.code)] ??= []).push(s);
     return groups;
   }, [catalogue]);
+
+  function continueToSignup() {
+    try {
+      localStorage.setItem("ilevest.selection", JSON.stringify({ mode, bundle, custom, codes: selectedCodes }));
+    } catch {
+      // basket carry is best-effort; never block the journey
+    }
+    router.push("/signup");
+  }
 
   return (
     <>
@@ -217,7 +228,7 @@ export default function StartPage() {
                   <p className="muted" style={{ fontSize: 13, margin: "12px 0 16px" }}>
                     Don’t have these? You can still proceed — the more you share, the more thorough we can be.
                   </p>
-                  <a className="btn primary" href="/client">Continue — you’ll create your account next</a>
+                  <button className="btn primary" onClick={continueToSignup}>Continue — create your account</button>
                 </>
               )}
             </div>

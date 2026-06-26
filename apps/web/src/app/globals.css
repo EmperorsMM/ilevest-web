@@ -126,3 +126,22 @@ a { color: inherit; }
 /* two-column page layout (selection rail collapses under content on small screens) */
 .layout2 { display: grid; grid-template-columns: 1fr 360px; gap: 28px; align-items: start; }
 @media (max-width: 860px) { .layout2 { grid-template-columns: 1fr; } }
+
+/* ---- auth (signup / sign in) ---- */
+.auth-wrap { min-height: calc(100vh - 64px); display: grid; place-items: center; padding: 40px 24px; }
+.auth-card { width: 100%; max-width: 430px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 32px; }
+.auth-card h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 6px; }
+.auth-card .sub { color: var(--muted); font-size: 14.5px; margin: 0 0 22px; line-height: 1.5; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-soft); margin-bottom: 6px; }
+.field input { width: 100%; font-size: 15px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); color: var(--ink); }
+.field input:focus { outline: 2px solid var(--green); outline-offset: 1px; border-color: var(--green); }
+.btn.google { background: var(--surface); color: var(--ink); border: 1px solid var(--line); margin-bottom: 4px; }
+.btn.google:hover { border-color: #C8CFDA; background: var(--paper); }
+.divider { display: flex; align-items: center; gap: 12px; margin: 18px 0; color: var(--muted); font-size: 13px; }
+.divider::before, .divider::after { content: ""; height: 1px; background: var(--line); flex: 1; }
+.auth-err { background: var(--red-wash); border: 1px solid #E6C4C0; color: #7A241F; font-size: 13.5px; padding: 10px 12px; border-radius: 9px; margin-bottom: 14px; }
+.auth-ok { background: var(--green-wash); border: 1px solid #CFE6D7; color: var(--green-ink); font-size: 14px; padding: 16px; border-radius: 9px; line-height: 1.5; }
+.auth-toggle { text-align: center; margin-top: 18px; font-size: 14px; color: var(--muted); }
+.auth-toggle button { background: none; border: 0; color: var(--green); font-weight: 700; cursor: pointer; font-size: 14px; padding: 0; }
+.boundary-note { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); text-align: center; line-height: 1.55; }
