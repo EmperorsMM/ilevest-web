@@ -14,7 +14,8 @@ function SignupForm() {
   const params = useSearchParams();
   const next = params.get("next") || "/client";
 
-  const [mode, setMode] = useState<"signup" | "signin">("signup");
+  const initialMode = params.get("mode") === "signin" ? "signin" : "signup";
+  const [mode, setMode] = useState<"signup" | "signin">(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

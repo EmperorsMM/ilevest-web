@@ -109,7 +109,7 @@ export default function StartPage() {
       <header className="topbar">
         <div className="wrap">
           <div className="brand">ile<span>vest</span></div>
-          <a className="signin" href="/client">Sign in</a>
+          <a className="signin" href="/signup?mode=signin">Sign in</a>
         </div>
       </header>
 
