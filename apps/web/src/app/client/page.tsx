@@ -99,7 +99,7 @@ function OrderCard({ o }: { o: OrderRow }) {
     year: "numeric",
   });
   return (
-    <article className="order-card">
+    <a href={`/client/orders/${o.order_id}`} className="order-card order-card-link">
       <div className="order-top">
         <div>
           <h3>{label}</h3>
@@ -110,7 +110,8 @@ function OrderCard({ o }: { o: OrderRow }) {
       <div className="order-status">
         <Status o={o} />
       </div>
-    </article>
+      <span className="order-more">View details &rarr;</span>
+    </a>
   );
 }
 

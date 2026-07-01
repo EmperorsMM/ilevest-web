@@ -82,6 +82,18 @@ jobs:
       - name: Client dashboard test (my_orders ownership + status/verdict summary)
         run: psql -d ilv_s4 -v ON_ERROR_STOP=1 -q -f supabase/tests/my_orders_smoke.sql
 
+      - name: Order creation test (create_order: bundle expansion, custom de-dup, ownership, validation)
+        run: psql -d ilv_s4 -v ON_ERROR_STOP=1 -q -f supabase/tests/create_order_smoke.sql
+
+      - name: Order detail test (state_code + optional seller; order_tracking exposes check_id/property/seller)
+        run: psql -d ilv_s4 -v ON_ERROR_STOP=1 -q -f supabase/tests/order_detail_smoke.sql
+
+      - name: Notifications test (outbox enqueue, order_received + verdict_ready hooks, RLS)
+        run: psql -d ilv_s4 -v ON_ERROR_STOP=1 -q -f supabase/tests/notifications_smoke.sql
+
+      - name: Invoice engine test (per-line VAT, totals, receipt, gating, issue->email+payment, fan-out)
+        run: psql -d ilv_s4 -v ON_ERROR_STOP=1 -q -f supabase/tests/invoice_engine_smoke.sql
+
   functions:
     name: Edge Function unit tests
     runs-on: ubuntu-latest
@@ -96,6 +108,9 @@ jobs:
 
       - name: Paystack webhook signature verification test
         run: node --experimental-strip-types supabase/functions/_shared/paystack.test.ts
+
+      - name: Notifications render + dispatch test
+        run: node --experimental-strip-types supabase/functions/_shared/notifications.test.ts
 
       - name: Anchor orchestration test
         run: node --experimental-strip-types supabase/functions/_shared/anchor.test.ts

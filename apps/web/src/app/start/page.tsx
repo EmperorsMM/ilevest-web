@@ -39,6 +39,11 @@ export default function StartPage() {
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [authed, setAuthed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setAuthed(!!data.user)).catch(() => setAuthed(false));
+  }, [supabase]);
 
   // load the catalogue and bundle compositions once
   useEffect(() => {
@@ -95,13 +100,13 @@ export default function StartPage() {
     return groups;
   }, [catalogue]);
 
-  function continueToSignup() {
+  function continueToOrder() {
     try {
       localStorage.setItem("ilevest.selection", JSON.stringify({ mode, bundle, custom, codes: selectedCodes }));
     } catch {
       // basket carry is best-effort; never block the journey
     }
-    router.push("/signup");
+    router.push(authed ? "/new" : "/signup?next=/new");
   }
 
   return (
@@ -109,7 +114,11 @@ export default function StartPage() {
       <header className="topbar">
         <div className="wrap">
           <div className="brand">ile<span>vest</span></div>
-          <a className="signin" href="/signup?mode=signin">Sign in</a>
+          {authed ? (
+            <a className="signin" href="/client">My dashboard</a>
+          ) : (
+            <a className="signin" href="/signup?mode=signin">Sign in</a>
+          )}
         </div>
       </header>
 
@@ -228,7 +237,7 @@ export default function StartPage() {
                   <p className="muted" style={{ fontSize: 13, margin: "12px 0 16px" }}>
                     Don’t have these? You can still proceed — the more you share, the more thorough we can be.
                   </p>
-                  <button className="btn primary" onClick={continueToSignup}>Continue — create your account</button>
+                  <button className="btn primary" onClick={continueToOrder}>{authed ? "Continue" : "Continue — create your account"}</button>
                 </>
               )}
             </div>

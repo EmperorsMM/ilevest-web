@@ -1,0 +1,40 @@
+{
+  "_comment": "Ilevest location reference for the state -> LGA/Area Council cascade dropdown. Official lists verified June 2026. State is lightly required; LGA/Area Council strongly encouraged but not blocking. Add more states later as data (no code change).",
+  "states": [
+    {
+      "code": "LA",
+      "name": "Lagos",
+      "subdivision_label": "LGA",
+      "subdivisions": [
+        "Agege","Ajeromi-Ifelodun","Alimosho","Amuwo-Odofin","Apapa","Badagry",
+        "Epe","Eti-Osa","Ibeju-Lekki","Ifako-Ijaiye","Ikeja","Ikorodu",
+        "Kosofe","Lagos Island","Lagos Mainland","Mushin","Ojo","Oshodi-Isolo",
+        "Shomolu","Surulere"
+      ]
+    },
+    {
+      "code": "OG",
+      "name": "Ogun",
+      "subdivision_label": "LGA",
+      "subdivisions": [
+        "Abeokuta North","Abeokuta South","Ado-Odo/Ota","Ewekoro","Ifo",
+        "Ijebu East","Ijebu North","Ijebu North East","Ijebu Ode","Ikenne",
+        "Imeko Afon","Ipokia","Obafemi Owode","Odeda","Odogbolu",
+        "Ogun Waterside","Remo North","Sagamu","Yewa North","Yewa South"
+      ]
+    },
+    {
+      "code": "FC",
+      "name": "FCT Abuja",
+      "subdivision_label": "Area Council",
+      "subdivisions": [
+        "Abuja Municipal (AMAC)","Bwari","Gwagwalada","Kuje","Kwali","Abaji"
+      ],
+      "fct_districts_note": "Within AMAC, property is commonly referenced by DISTRICT rather than area council. Consider a secondary optional 'district' field for FCT/AMAC selections.",
+      "amac_common_districts": [
+        "Maitama","Asokoro","Garki","Wuse","Wuse II","Jabi","Utako","Gwarinpa",
+        "Life Camp","Katampe","Guzape","Central Business District","Lugbe","Karu"
+      ]
+    }
+  ]
+}
