@@ -1,10 +1,11 @@
 name: CI
 
-# Runs on every pull request, and on pushes to non-main branches.
+# Runs on every pull request and every push — including main, where direct
+# pushes land. [2026-07-03] This pipeline previously ignored main, so type
+# errors reached Vercel unchecked for eight days. Never again.
 on:
   pull_request:
   push:
-    branches-ignore: [main]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -40,6 +41,9 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
 
   contract:
     name: Validate API contract
