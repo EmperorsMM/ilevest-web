@@ -85,13 +85,13 @@ jobs:
       - name: Stage 3 smoke test (Merkle root, daily anchoring, proof attach, certificate honesty)
         run: psql -d ilv_s3 -v ON_ERROR_STOP=1 -q -f supabase/tests/stage3_smoke.sql
 
-      - name: Stage 4 smoke test (Client Portal read-model: quote, buyer status, ownership)
+      - name: 'Stage 4 smoke test (Client Portal read-model: quote, buyer status, ownership)'
         run: psql -d ilv_s4 -v ON_ERROR_STOP=1 -q -f supabase/tests/stage4_smoke.sql
 
       - name: Client dashboard test (my_orders ownership + status/verdict summary)
         run: psql -d ilv_s4 -v ON_ERROR_STOP=1 -q -f supabase/tests/my_orders_smoke.sql
 
-      - name: Order creation test (create_order: bundle expansion, custom de-dup, ownership, validation)
+      - name: 'Order creation test (create_order: bundle expansion, custom de-dup, ownership, validation)'
         run: psql -d ilv_s4 -v ON_ERROR_STOP=1 -q -f supabase/tests/create_order_smoke.sql
 
       - name: Order detail test (state_code + optional seller; order_tracking exposes check_id/property/seller)
@@ -103,7 +103,7 @@ jobs:
       - name: Invoice engine test (per-line VAT, totals, receipt, gating, issue->email+payment, fan-out)
         run: psql -d ilv_s4 -v ON_ERROR_STOP=1 -q -f supabase/tests/invoice_engine_smoke.sql
 
-      - name: Fulfilment Desk test (Increment 1: FSM matrix, ceremony doors, voids + manifest, self-seal, retry-first, recipe stability)
+      - name: 'Fulfilment Desk test (Increment 1: FSM matrix, ceremony doors, voids + manifest, self-seal, retry-first, recipe stability)'
         run: psql -d ilv_s5 -v ON_ERROR_STOP=1 -q -f supabase/tests/fulfilment_desk_smoke.sql
 
   functions:
