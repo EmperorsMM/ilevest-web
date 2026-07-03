@@ -5,7 +5,9 @@
 # Stage 1 (schema, RLS, append-only money + verdict, the proof-layer hash-chain), Stage 2 (fan-out
 # + idempotency, Ops-direct assignment, evidence least-privilege, sealing, public verification),
 # Stage 3 (RFC 6962 Merkle root, daily anchoring, write-once batch link + proof, certificate honesty,
-# no-PII). A second job runs the Paystack webhook signature unit test under Node. Runs on
+# no-PII), Increment 1 — the Fulfilment Desk (ratified FSM matrix, the three ceremony doors,
+# void markers + sealed-evidence manifest, findings discipline, self-seal guard, retry-first
+# escalation, canonical-recipe stability). A second job runs the Paystack webhook signature unit test under Node. Runs on
 # pushes/PRs touching the DB or functions, and on demand from the Actions tab.
 
 name: Database + functions tests
@@ -59,7 +61,7 @@ jobs:
       - name: Build a fresh, fully-migrated database for each stage
         run: |
           set -e
-          for db in ilv_s1 ilv_s2 ilv_s3 ilv_s4; do
+          for db in ilv_s1 ilv_s2 ilv_s3 ilv_s4 ilv_s5; do
             createdb "$db"
             for f in $(ls supabase/migrations/*.sql | sort); do
               psql -d "$db" -v ON_ERROR_STOP=1 -q -f "$f"
@@ -93,6 +95,9 @@ jobs:
 
       - name: Invoice engine test (per-line VAT, totals, receipt, gating, issue->email+payment, fan-out)
         run: psql -d ilv_s4 -v ON_ERROR_STOP=1 -q -f supabase/tests/invoice_engine_smoke.sql
+
+      - name: Fulfilment Desk test (Increment 1: FSM matrix, ceremony doors, voids + manifest, self-seal, retry-first, recipe stability)
+        run: psql -d ilv_s5 -v ON_ERROR_STOP=1 -q -f supabase/tests/fulfilment_desk_smoke.sql
 
   functions:
     name: Edge Function unit tests

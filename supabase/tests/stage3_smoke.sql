@@ -84,18 +84,25 @@ select set_config('t.k2',(select id::text from public.check_item where order_id=
 select set_config('t.k3',(select id::text from public.check_item where order_id='cc000000-0000-0000-0000-0000000000b1' and service_code='C1-LR-03'),false);
 
 -- seal k1 (green), k2 (amber), k3 (green): Ops assigns -> assigned worker progresses -> Reviewer seals
+-- [2026-07-03 · Increment 1] each submission now carries evidence + a findings summary
 set app.user_id = :ops;      select public.assign_check(current_setting('t.k1')::uuid, :partner1);
 set app.user_id = :partner1; update public.check_item set state='in_progress' where id=current_setting('t.k1')::uuid;
+select public.record_evidence(current_setting('t.k1')::uuid,'register_photo','h_k1_photo');
+select public.record_findings(current_setting('t.k1')::uuid,'LR-01 register searched; entries clear.');
                              update public.check_item set state='in_review'  where id=current_setting('t.k1')::uuid;
 set app.user_id = :reviewer; select public.seal_check(current_setting('t.k1')::uuid,'green','LR-01 clear');
 
 set app.user_id = :ops;      select public.assign_check(current_setting('t.k2')::uuid, :partner1);
 set app.user_id = :partner1; update public.check_item set state='in_progress' where id=current_setting('t.k2')::uuid;
+select public.record_evidence(current_setting('t.k2')::uuid,'register_photo','h_k2_photo');
+select public.record_findings(current_setting('t.k2')::uuid,'LR-02 instrument located; minor variance noted.');
                              update public.check_item set state='in_review'  where id=current_setting('t.k2')::uuid;
 set app.user_id = :reviewer; select public.seal_check(current_setting('t.k2')::uuid,'amber','LR-02 minor');
 
 set app.user_id = :ops;      select public.assign_check(current_setting('t.k3')::uuid, :partner1);
 set app.user_id = :partner1; update public.check_item set state='in_progress' where id=current_setting('t.k3')::uuid;
+select public.record_evidence(current_setting('t.k3')::uuid,'register_photo','h_k3_photo');
+select public.record_findings(current_setting('t.k3')::uuid,'LR-03 register searched; entries clear.');
                              update public.check_item set state='in_review'  where id=current_setting('t.k3')::uuid;
 set app.user_id = :reviewer; select public.seal_check(current_setting('t.k3')::uuid,'green','LR-03 clear');
 reset role;

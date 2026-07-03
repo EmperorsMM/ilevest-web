@@ -65,6 +65,9 @@ select set_config('t.c2',(select id::text from public.check_item where order_id=
 -- LR-01 -> sealed (Ready, green); LR-02 -> in_progress (In Progress); LR-03 -> initiated (Assigned)
 set app.user_id = :ops;      select public.assign_check(current_setting('t.c1')::uuid, :partner1);
 set app.user_id = :partner1; update public.check_item set state='in_progress' where id=current_setting('t.c1')::uuid;
+-- [2026-07-03 · Increment 1] submission requires live evidence + findings
+select public.record_evidence(current_setting('t.c1')::uuid,'register_photo','h_c1_register');
+select public.record_findings(current_setting('t.c1')::uuid,'Register searched; title chain clear as at today.');
                              update public.check_item set state='in_review'  where id=current_setting('t.c1')::uuid;
 set app.user_id = :reviewer; select public.seal_check(current_setting('t.c1')::uuid,'green','clear');
 set app.user_id = :ops;      select public.assign_check(current_setting('t.c2')::uuid, :partner1);
@@ -295,6 +298,8 @@ select set_config('t.fc',(select id::text from public.check_item where order_id=
 set app.user_id = '22222222-2222-2222-2222-222222222222'; select public.assign_check(current_setting('t.fc')::uuid, '44444444-4444-4444-4444-444444444444');
 set app.user_id = '44444444-4444-4444-4444-444444444444';
   update public.check_item set state='in_progress' where id=current_setting('t.fc')::uuid;
+  select public.record_evidence(current_setting('t.fc')::uuid,'register_photo','h_fc_register');
+  select public.record_findings(current_setting('t.fc')::uuid,'Full pipeline check: register searched, chain clear.');
   update public.check_item set state='in_review'  where id=current_setting('t.fc')::uuid;
 set app.user_id = '33333333-3333-3333-3333-333333333333'; select public.seal_check(current_setting('t.fc')::uuid,'green','clear title');
 reset role;

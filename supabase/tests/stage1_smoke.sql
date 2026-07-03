@@ -71,19 +71,31 @@ insert into public.evidence_item(id,check_id,kind,content_hash,gps_lat,gps_lng)
   values (:ev1,:check1,'register_photo','h_register_photo_dummy', 6.45, 3.47);
 insert into public.evidence_item(id,check_id,kind,content_hash)
   values (:rcpt1,:check1,'receipt','h_official_receipt_dummy');
+-- [2026-07-03 · Increment 1] submission now requires live evidence + a findings
+-- summary (the FSM enforces it on the table itself), so the fixtures write them.
+select public.record_findings(:check1, 'Register photographed and receipt retained; no adverse entries seen.');
 update public.check_item set state='in_review' where id=:check1;
 update public.check_item set state='in_progress' where id=:check2;
+select public.record_evidence(:check2,'note','h_check2_worknote');
+select public.record_findings(:check2, 'Survey plan compared against charting; predates the latest sheet.');
 update public.check_item set state='in_review'  where id=:check2;
-\echo 'partner1: worked both checks to in_review; captured 2 evidence items'
+\echo 'partner1: worked both checks to in_review; captured evidence + findings summaries'
 
 -- REVIEWER finalizes, records verdicts, seals commitments
 set app.user_id = :reviewer;
-update public.check_item set state='finalized' where id=:check1;
-update public.check_item set state='finalized' where id=:check2;
+-- [2026-07-03 · Increment 1] finalized/verdict/commitment are ceremony-only now.
+-- Stage 1 proves the raw layer BENEATH the ceremony (dummy hashes, controlled ids),
+-- so the fixtures deliberately hold the ceremony latch; the ceremony itself is
+-- proven end-to-end in fulfilment_desk_smoke.sql. Verdict precedes finalize.
+select set_config('app.sealing_check', :check1, false);
 insert into public.verdict(check_id,colour,explanation) values (:check1,'green','No adverse entries found as at search date.');
-insert into public.verdict(check_id,colour,explanation) values (:check2,'amber','Survey plan predates the latest charting; proceed with caution.');
+update public.check_item set state='finalized' where id=:check1;
 insert into public.commitment(id,check_id,content_hash) values (:c1,:check1, repeat('a',64));
+select set_config('app.sealing_check', :check2, false);
+insert into public.verdict(check_id,colour,explanation) values (:check2,'amber','Survey plan predates the latest charting; proceed with caution.');
+update public.check_item set state='finalized' where id=:check2;
 insert into public.commitment(id,check_id,content_hash) values (:c2,:check2, repeat('b',64));
+select set_config('app.sealing_check', '', false);
 \echo 'reviewer: finalized both checks, recorded verdicts (green, amber), sealed 2 commitments'
 
 reset role;
@@ -121,6 +133,8 @@ do $$ begin
 end $$;
 
 update public.check_item set state='in_progress' where id=:check3;
+select public.record_evidence(:check3,'note','h_check3_fieldnote');
+select public.record_findings(:check3, 'Field visit: competing claim sighted at the parcel edge; documented.');
 update public.check_item set state='in_review'  where id=:check3;
 do $$ begin
   begin update public.check_item set state='finalized' where id='dd000000-0000-0000-0000-000000000003';
@@ -130,9 +144,11 @@ end $$;
 
 -- reviewer legitimately finalizes check3 with a RED verdict, seals commitment c3 that supersedes c1
 set app.user_id = :reviewer;
-update public.check_item set state='finalized' where id=:check3;
+select set_config('app.sealing_check', :check3, false);
 insert into public.verdict(check_id,colour,explanation) values (:check3,'red','Competing claim discovered on the parcel.');
+update public.check_item set state='finalized' where id=:check3;
 insert into public.commitment(id,check_id,content_hash,supersedes_id) values (:c3,:check3, repeat('c',64), :c1);
+select set_config('app.sealing_check', '', false);
 \echo 'reviewer: finalized check3 (RED) and sealed a superseding commitment'
 
 \echo ''
@@ -256,8 +272,9 @@ do $$ declare nc int; ne int; begin
   select count(*) into nc from public.check_item;
   select count(*) into ne from public.evidence_item;
   if nc <> 3 then raise exception 'FAIL: partner1 should see 3 assigned checks, saw %', nc; end if;
-  if ne <> 2 then raise exception 'FAIL: partner1 should see 2 evidence items on their checks, saw %', ne; end if;
-  raise notice 'PASS: partner1 sees 3 assigned checks and their 2 evidence items';
+  -- [2026-07-03 · Increment 1] fixtures now include findings + worknotes (2 -> 7 items)
+  if ne <> 7 then raise exception 'FAIL: partner1 should see 7 evidence items on their checks, saw %', ne; end if;
+  raise notice 'PASS: partner1 sees 3 assigned checks and their 7 evidence items';
 end $$;
 set app.user_id = :partner2;
 do $$ declare nc int; ne int; begin
@@ -294,9 +311,10 @@ set app.user_id = :client1;
 do $$ declare nidx int; nraw int; begin
   select count(*) into nidx from public.evidence_index;
   select count(*) into nraw from public.evidence_item;
-  if nidx <> 2 then raise exception 'FAIL: client1 should see 2 evidence-index rows, saw %', nidx; end if;
+  -- [2026-07-03 · Increment 1] fixtures now include findings + worknotes (2 -> 7 rows)
+  if nidx <> 7 then raise exception 'FAIL: client1 should see 7 evidence-index rows, saw %', nidx; end if;
   if nraw <> 0 then raise exception 'FAIL: client1 must NOT read the raw evidence_item table, saw %', nraw; end if;
-  raise notice 'PASS: client1 sees the evidence index (2) but not the raw evidence rows (0)';
+  raise notice 'PASS: client1 sees the evidence index (7) but not the raw evidence rows (0)';
 end $$;
 set app.user_id = :client2;
 do $$ declare nidx int; begin

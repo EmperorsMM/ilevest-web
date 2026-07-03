@@ -126,6 +126,8 @@ end $$;
 \echo ''
 \echo '################ PART 3 — evidence intake (least-privilege per check) ################'
 set app.user_id = :fa;
+-- [2026-07-03 · Increment 1] evidence attaches only while a check is being worked
+update public.check_item set state='in_progress' where id = current_setting('t.fd_check')::uuid;
 select public.record_evidence(current_setting('t.fd_check')::uuid,'coordinate','h_fd_coord_1', null, 6.4501, 3.4710, 8.0, now(), 'device-FA-01');
 do $$ declare n int; begin
   select count(*) into n from public.evidence_item where check_id = current_setting('t.fd_check')::uuid;
@@ -135,7 +137,8 @@ end $$;
 set app.user_id = :partner2;
 do $$ begin
   begin perform public.record_evidence(current_setting('t.fd_check')::uuid,'note','h_intruder', null, null, null, null, null, null);
-  exception when sqlstate '42501' then raise notice 'PASS: a non-assigned worker cannot post evidence (RLS)'; return; end;
+  -- [2026-07-03 · Increment 1] the capture law on the table (23514) now fires before RLS (42501)
+  exception when sqlstate '42501' or sqlstate '23514' then raise notice 'PASS: a non-assigned worker cannot post evidence (capture law + RLS)'; return; end;
   raise exception 'FAIL: a non-assigned worker posted evidence';
 end $$;
 set app.user_id = :fa;
@@ -149,6 +152,9 @@ end $$;
 \echo '################ PART 4 — seal pipeline + hash-chain ################'
 set app.user_id = :ops;       select public.assign_check(current_setting('t.chk_lr')::uuid, :partner1);
 set app.user_id = :partner1;  update public.check_item set state='in_progress' where id = current_setting('t.chk_lr')::uuid;
+-- [2026-07-03 · Increment 1] submission requires live evidence + findings
+select public.record_evidence(current_setting('t.chk_lr')::uuid,'register_photo','h_lr_register_1');
+select public.record_findings(current_setting('t.chk_lr')::uuid,'Registry search complete; no adverse entries as at the search date.');
                               update public.check_item set state='in_review'  where id = current_setting('t.chk_lr')::uuid;
 set app.user_id = :reviewer;
 select set_config('t.s1', public.seal_check(current_setting('t.chk_lr')::uuid,'green','No adverse entries found as at the search date.')::text, false);
@@ -162,6 +168,8 @@ end $$;
 
 set app.user_id = :ops;       select public.assign_check(current_setting('t.chk_sg')::uuid, :partner1);
 set app.user_id = :partner1;  update public.check_item set state='in_progress' where id = current_setting('t.chk_sg')::uuid;
+select public.record_evidence(current_setting('t.chk_sg')::uuid,'register_photo','h_sg_plan_1');
+select public.record_findings(current_setting('t.chk_sg')::uuid,'Survey plan located; predates the latest charting sheet.');
                               update public.check_item set state='in_review'  where id = current_setting('t.chk_sg')::uuid;
 set app.user_id = :reviewer;
 select set_config('t.s2', public.seal_check(current_setting('t.chk_sg')::uuid,'amber','Survey plan predates latest charting; proceed with caution.')::text, false);
