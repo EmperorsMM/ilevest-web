@@ -181,6 +181,7 @@ paths:
     get:
       tags: [public]
       operationId: verifyCertificate
+      security: []   # deliberately public — the certificate is the product
       summary: Public certificate verification (no auth, no PII)
       description: >
         Returns whether a sealed certificate is valid, its verdict, the property's location
@@ -194,6 +195,8 @@ paths:
           schema: { type: string, format: uuid }
           description: The check (certificate) reference.
       responses:
+        '400':
+          description: Malformed reference (not a UUID).
         '200':
           description: Verification payload (no PII)
           content:
@@ -283,14 +286,13 @@ components:
           type: string
           description: SHA-256 (hex) computed on the capturing device at the moment of capture.
         storage_ref:
-          type: string
-          nullable: true
+          type: [string, 'null']
           description: Pointer to the raw file in storage. Never returned by public endpoints.
-        gps_lat: { type: number, nullable: true }
-        gps_lng: { type: number, nullable: true }
-        gps_accuracy: { type: number, nullable: true }
-        captured_at: { type: string, format: date-time, nullable: true }
-        device_id: { type: string, nullable: true }
+        gps_lat: { type: [number, 'null'] }
+        gps_lng: { type: [number, 'null'] }
+        gps_accuracy: { type: [number, 'null'] }
+        captured_at: { type: [string, 'null'], format: date-time }
+        device_id: { type: [string, 'null'] }
     EvidenceResult:
       type: object
       required: [evidence_id]
@@ -356,11 +358,11 @@ components:
             lga: { type: string }
             state: { type: string }
             locality: { type: string }
-        sealed_at: { type: string, format: date-time, nullable: true }
-        content_hash: { type: string, nullable: true }
-        prev_hash: { type: string, nullable: true }
+        sealed_at: { type: [string, 'null'], format: date-time }
+        content_hash: { type: [string, 'null'] }
+        prev_hash: { type: [string, 'null'] }
         anchored: { type: boolean }
-        anchor_ref: { type: string, nullable: true }
+        anchor_ref: { type: [string, 'null'] }
 
     Error:
       type: object
