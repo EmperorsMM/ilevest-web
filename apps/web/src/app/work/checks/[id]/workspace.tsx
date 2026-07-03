@@ -63,7 +63,7 @@ export default function CheckWorkspace() {
 
   useEffect(() => { void load(); }, [load]);
 
-  const act = useCallback(async (fn: () => Promise<{ error: { message: string } | null }>, okText: string): Promise<boolean> => {
+  const act = useCallback(async (fn: () => PromiseLike<{ error: { message: string } | null }>, okText: string): Promise<boolean> => {
     setBusy(true); setMsg(null);
     const { error } = await fn();
     if (error) setMsg({ kind: "err", text: error.message });
