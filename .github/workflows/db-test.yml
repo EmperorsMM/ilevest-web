@@ -58,12 +58,19 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq postgresql-client
 
+      - name: Migration folder hygiene (the numbered chain is the contract)
+        run: |
+          stray=$(ls supabase/migrations/*.sql 2>/dev/null | grep -v '/2026' || true)
+          if [ -n "$stray" ]; then
+            echo "::warning title=Stray files in supabase/migrations::CI applies only the numbered chain (2026*.sql). These files are skipped and belong in supabase/sql_editor/: $stray"
+          fi
+
       - name: Build a fresh, fully-migrated database for each stage
         run: |
           set -e
           for db in ilv_s1 ilv_s2 ilv_s3 ilv_s4 ilv_s5; do
             createdb "$db"
-            for f in $(ls supabase/migrations/*.sql | sort); do
+            for f in $(ls supabase/migrations/2026*.sql | sort); do
               psql -d "$db" -v ON_ERROR_STOP=1 -q -f "$f"
             done
             echo "migrated $db"
