@@ -36,3 +36,12 @@ stay verifiable); the self-seal guard OFF/ON (D1); retry-first escalation (D4); 
 precedence (D5); verdict_ready firing only on the last seal; cross-tenant RLS; tamper-proof
 authorship stamps; audited, work-frozen reassignment. Superuser tamper attempts are
 deliberate and prove the trigger law is role-blind.
+
+## `worker_read_model_smoke.sql`  *(Increment 2, 2026-07-03)*
+
+The worker surface's read model: `my_checks()` scopes the caseload to the signed-in
+worker (empty for non-workers); `check_workspace()` hands the assigned worker their
+context, evidence index with void markers, live findings text and — crucially — the
+Reviewer's last return/exception reason (a guarded DEFINER read-model, since workers
+deliberately cannot read the raw audit spine). Other workers and buyers get
+`visible:false`; staff can look in with `i_am_worker:false`.
