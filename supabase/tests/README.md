@@ -45,3 +45,12 @@ context, evidence index with void markers, live findings text and — crucially 
 Reviewer's last return/exception reason (a guarded DEFINER read-model, since workers
 deliberately cannot read the raw audit spine). Other workers and buyers get
 `visible:false`; staff can look in with `i_am_worker:false`.
+
+## `reviewer_bench_smoke.sql`  *(Increment 3, 2026-07-03)*
+
+The desk's read model: `desk_queue()` returns the three piles — intake
+(unassigned), in review (oldest first, with worker and evidence count), and
+exceptions (latest reason + retry count straight off the audit spine, making
+retry-first visible). Non-staff get `staff:false` and empty piles. Also proves
+the amended `check_workspace()` names the worker and carries storage refs for
+evidence viewing on the bench.

@@ -109,6 +109,9 @@ jobs:
       - name: 'Worker read-model test (Increment 2: my_checks + check_workspace scoping, reason handoff)'
         run: psql -d ilv_s5 -v ON_ERROR_STOP=1 -q -f supabase/tests/worker_read_model_smoke.sql
 
+      - name: 'Reviewer bench test (Increment 3: desk_queue piles, worker identity, retry-first visibility)'
+        run: psql -d ilv_s5 -v ON_ERROR_STOP=1 -q -f supabase/tests/reviewer_bench_smoke.sql
+
   functions:
     name: Edge Function unit tests
     runs-on: ubuntu-latest
