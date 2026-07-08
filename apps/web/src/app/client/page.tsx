@@ -4,8 +4,8 @@
 // empty state is the front door: a moment of reassurance + a single call to
 // start a verification, routing back to /start.
 import { redirect } from "next/navigation";
+import DeskShell from "../../components/desk-shell";
 import { createSupabaseServerClient } from "../../lib/supabase/server";
-import SignOutButton from "./sign-out-button";
 
 export const dynamic = "force-dynamic";
 
@@ -43,12 +43,7 @@ export default async function ClientHome() {
 
   return (
     <>
-      <header className="topbar">
-        <div className="wrap">
-          <a className="brand" href="/start" style={{ textDecoration: "none" }}>ile<span>vest</span></a>
-          <SignOutButton />
-        </div>
-      </header>
+      <DeskShell active="/client" />
       <main className="wrap dash">
         {orders.length === 0 ? <EmptyState first={first} /> : <OrderList orders={orders} first={first} />}
       </main>

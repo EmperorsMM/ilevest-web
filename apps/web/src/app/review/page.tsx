@@ -3,6 +3,7 @@
 // escalate). desk_queue() is SECURITY INVOKER: RLS grants staff the reads,
 // and everyone else gets staff:false.
 import { redirect } from "next/navigation";
+import DeskShell from "../../components/desk-shell";
 import { createSupabaseServerClient } from "../../lib/supabase/server";
 import AssignToMe from "./assign-to-me";
 
@@ -34,11 +35,7 @@ export default async function DeskQueue() {
 
   return (
     <>
-      <header className="topbar">
-        <div className="wrap">
-          <span className="brand">ile<span>vest</span> <span className="ops-tag">Desk</span></span>
-        </div>
-      </header>
+      <DeskShell active="/review" />
       <main className="wrap" style={{ padding: "32px 24px 80px" }}>
         <h1 className="detail-h1" style={{ marginTop: 0 }}>The desk</h1>
         <p className="detail-meta">

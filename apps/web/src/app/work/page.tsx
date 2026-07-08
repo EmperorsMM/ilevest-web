@@ -2,6 +2,7 @@
 // SECURITY INVOKER, so Row-Level Security scopes the list to the signed-in
 // worker. Fix requests surface first, then new work, then work in hand.
 import { redirect } from "next/navigation";
+import DeskShell from "../../components/desk-shell";
 import { createSupabaseServerClient } from "../../lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -32,11 +33,7 @@ export default async function MyChecks() {
 
   return (
     <>
-      <header className="topbar">
-        <div className="wrap">
-          <span className="brand">ile<span>vest</span> <span className="ops-tag">Work</span></span>
-        </div>
-      </header>
+      <DeskShell active="/work" />
       <main className="wrap" style={{ padding: "32px 24px 80px" }}>
         <h1 className="detail-h1" style={{ marginTop: 0 }}>My checks</h1>
         <p className="detail-meta">
