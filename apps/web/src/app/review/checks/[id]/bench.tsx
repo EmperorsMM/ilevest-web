@@ -83,7 +83,7 @@ export default function ReviewBench() {
 
   const viewFile = async (ref: string) => {
     const path = ref.startsWith("evidence/") ? ref.slice("evidence/".length) : ref;
-    const { data, error } = await supabase.storage.from("evidence").createSignedUrl(path, 600);
+    const { data, error } = await supabase.storage.from("evidence").createSignedUrl(path, 300); // 5-minute TTL — evidence files are sensitive (checklist 2.1)
     if (error || !data?.signedUrl) { setMsg({ kind: "err", text: error?.message ?? "Could not open the file." }); return; }
     window.open(data.signedUrl, "_blank", "noopener");
   };

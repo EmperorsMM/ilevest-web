@@ -122,7 +122,7 @@ jobs:
       - name: Set up Node 22
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
 
       - name: Paystack webhook signature verification test
         run: node --experimental-strip-types supabase/functions/_shared/paystack.test.ts
