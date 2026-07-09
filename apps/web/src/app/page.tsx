@@ -4,6 +4,7 @@
 // the verdict scale as the signature) rather than ad-hoc inline styles, so the
 // root matches /start and /client exactly.
 import { redirect } from "next/navigation";
+import OAuthCodeCatcher from "../components/oauth-code-catcher";
 import SiteFooter from "../components/site-footer";
 import Image from "next/image";
 import { createSupabaseServerClient } from "../lib/supabase/server";
@@ -27,6 +28,7 @@ export default async function Home() {
   return (
     <>
       <DeskShell />
+      <OAuthCodeCatcher />
       <main className="wrap">
         <section className="hero">
           <div className="hero-head">
