@@ -4,6 +4,7 @@
 // the verdict scale as the signature) rather than ad-hoc inline styles, so the
 // root matches /start and /client exactly.
 import { redirect } from "next/navigation";
+import SiteFooter from "../components/site-footer";
 import Image from "next/image";
 import { createSupabaseServerClient } from "../lib/supabase/server";
 import DeskShell from "../components/desk-shell";
@@ -106,6 +107,7 @@ export default async function Home() {
           </div>
         </section>
       </main>
+      <SiteFooter />
     </>
   );
 }

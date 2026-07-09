@@ -12,6 +12,7 @@
 // findings means voiding the old summary (with a reason) and writing anew.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../../../lib/supabase/client";
 import { sha256HexOfFile, shortHash } from "../../../../lib/hash";
@@ -149,7 +150,12 @@ export default function CheckWorkspace() {
     <>
       <header className="topbar">
         <div className="wrap">
-          <span className="brand">ile<span>vest</span> <span className="ops-tag">Work</span></span>
+          <a className="brand" href="/work" aria-label="Ilevest">
+            {/* logo lockup on desktop, seal on mobile */}
+            <Image className="brand-logo" src="/logo.png" alt="Ilevest" width={1046} height={346} style={{ height: 40, width: "auto" }} priority />
+            <Image className="brand-seal" src="/seal.png" alt="Ilevest" width={40} height={40} style={{ height: 34, width: "auto" }} priority />
+          </a>
+          <span className="ops-tag" style={{ marginLeft: 10 }}>Work</span>
         </div>
       </header>
       <main className="wrap" style={{ padding: "32px 24px 80px", maxWidth: 760 }}>
