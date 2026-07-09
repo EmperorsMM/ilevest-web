@@ -61,7 +61,6 @@ const bundles = [
       "Survey Plan Authentication",
       "Charting / Land Status Report",
       "Litigation / Pending Suit Search",
-      "Identity Verification (NIN/BVN consistency)",
       "Physical Site Inspection",
     ],
   },
@@ -107,7 +106,6 @@ const desks = [
     protects: "Confirms the people and companies you are dealing with are who they claim to be.",
     checks: [
       "Corporate Seller Check — is the selling company real and in good standing?",
-      "Identity Verification (NIN/BVN consistency) — do the seller's identities line up?",
       "Professional Licence Verification — is the agent or professional licensed?",
     ],
   },
