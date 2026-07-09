@@ -8,6 +8,7 @@
 // their own roles), so the nav is correct without trusting the client.
 
 import { createSupabaseServerClient } from "../lib/supabase/server";
+import Image from "next/image";
 import SignOutButton from "../app/client/sign-out-button";
 
 type Tab = { href: string; label: string; show: boolean };
@@ -34,8 +35,9 @@ export default async function DeskShell({ active }: { active?: string }) {
   return (
     <header className="topbar">
       <div className="wrap">
-        <a className="brand" href={user ? "/client" : "/start"} style={{ textDecoration: "none" }}>
-          ile<span>vest</span>
+        <a className="brand" href={user ? "/client" : "/start"} aria-label="Ilevest — verify before you buy">
+          <Image className="brand-logo" src="/logo.png" alt="Ilevest — verify before you buy" width={1046} height={346} priority />
+          <Image className="brand-seal" src="/seal.png" alt="Ilevest" width={40} height={40} priority />
         </a>
 
         {tabs.length > 0 && (

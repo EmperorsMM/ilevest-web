@@ -4,6 +4,7 @@
 // the verdict scale as the signature) rather than ad-hoc inline styles, so the
 // root matches /start and /client exactly.
 import { redirect } from "next/navigation";
+import Image from "next/image";
 import { createSupabaseServerClient } from "../lib/supabase/server";
 import DeskShell from "../components/desk-shell";
 
@@ -27,8 +28,15 @@ export default async function Home() {
       <DeskShell />
       <main className="wrap">
         <section className="hero">
-          <p className="eyebrow">Independent property verification · Lagos · Ogun · FCT</p>
-          <h1>Know exactly what you&rsquo;re buying before you pay for it.</h1>
+          <div className="hero-head">
+            <div>
+              <p className="eyebrow">Independent property verification · Lagos · Ogun · FCT</p>
+              <h1>Know exactly what you&rsquo;re buying before you pay for it.</h1>
+            </div>
+            <div className="hero-seal">
+              <Image src="/seal.png" alt="Ilevest verification seal" width={128} height={128} priority />
+            </div>
+          </div>
           <p className="lede">
             Land fraud, fake titles and disputed ownership cost Nigerian buyers everything.
             We check the property against the registries, the survey records and the courts,
