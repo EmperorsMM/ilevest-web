@@ -1,12 +1,8 @@
-// The front door — ilevest.com/. A signed-in visitor is sent straight to their
-// own surface; the public sees a real landing (no scaffolding), with the shared
-// shell on top and a clear path into the journey. Server component so the
-// redirect happens before any render.
-//
-// This replaces the Stage 0 placeholder. Protected surfaces (/client, /work,
-// /review, /ops) each still enforce their own sign-in redirect and RLS; this
-// page only decides where a visitor to the bare domain lands.
-
+// The front door — ilevest.com/. Signed-in visitors route to their surface;
+// the public sees the landing. Built on the shared design system in globals.css
+// (the "evidence-room" identity: ink authority, one cleared-green, warm paper,
+// the verdict scale as the signature) rather than ad-hoc inline styles, so the
+// root matches /start and /client exactly.
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "../lib/supabase/server";
 import DeskShell from "../components/desk-shell";
@@ -29,47 +25,78 @@ export default async function Home() {
   return (
     <>
       <DeskShell />
-      <main className="wrap" style={{ padding: "72px 24px 96px", maxWidth: 720, textAlign: "center" }}>
-        <h1 style={{ fontSize: 40, lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 16px" }}>
-          Verify before you buy.
-        </h1>
-        <p style={{ fontSize: 19, color: "var(--muted)", lineHeight: 1.5, margin: "0 auto 32px", maxWidth: 560 }}>
-          Independent land and property verification for Nigeria. We check the title,
-          the survey, the courts and the seller — then seal the result as a tamper-evident
-          record you can trust and anyone can verify.
-        </p>
-        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <a className="btn" href="/start" style={{ fontSize: 16, padding: "12px 22px" }}>
-            Start a verification
-          </a>
-          <a href="/signup?mode=signin"
-             style={{ fontSize: 16, padding: "12px 22px", textDecoration: "none",
-                      color: "var(--ink)", border: "1px solid var(--line)", borderRadius: 10 }}>
-            Sign in
-          </a>
-        </div>
+      <main className="wrap">
+        <section className="hero">
+          <p className="eyebrow">Independent property verification · Lagos · Ogun · FCT</p>
+          <h1>Know exactly what you&rsquo;re buying before you pay for it.</h1>
+          <p className="lede">
+            Land fraud, fake titles and disputed ownership cost Nigerian buyers everything.
+            We check the property against the registries, the survey records and the courts,
+            then give you a clear, evidence-backed verdict you can verify yourself.
+          </p>
 
-        <div style={{ marginTop: 56, display: "grid", gap: 20, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                      textAlign: "left" }}>
-          <div>
-            <strong>Evidence-backed</strong>
-            <p style={{ color: "var(--muted)", margin: "6px 0 0", fontSize: 15 }}>
-              Every finding is captured, fingerprinted, and kept — no trust-me verdicts.
-            </p>
+          <div className="verdicts">
+            <span className="verdict g"><span className="dot g" /><b>Green</b> clear to proceed</span>
+            <span className="verdict"><span className="dot a" /><b>Amber</b> proceed with care</span>
+            <span className="verdict"><span className="dot r" /><b>Red</b> a serious problem</span>
           </div>
-          <div>
-            <strong>Publicly verifiable</strong>
-            <p style={{ color: "var(--muted)", margin: "6px 0 0", fontSize: 15 }}>
-              Each sealed result gets a public certificate — with no personal information.
-            </p>
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 30, maxWidth: 440 }}>
+            <a className="btn primary" href="/start" style={{ width: "auto", flex: "1 1 auto" }}>
+              Start a verification
+            </a>
+            <a className="btn" href="/signup?mode=signin"
+               style={{ width: "auto", flex: "0 0 auto", border: "1px solid var(--line)", color: "var(--ink)" }}>
+              Sign in
+            </a>
           </div>
-          <div>
-            <strong>Tamper-evident</strong>
-            <p style={{ color: "var(--muted)", margin: "6px 0 0", fontSize: 15 }}>
-              Results are anchored daily to public infrastructure and cannot be altered after.
-            </p>
+        </section>
+
+        <section className="section">
+          <h2>How the trust is built</h2>
+          <div className="grid">
+            <div className="card" style={{ cursor: "default" }}>
+              <div className="name">Evidence-backed</div>
+              <div className="who">
+                Every finding is captured, fingerprinted and kept &mdash; no trust-me verdicts.
+                You see what we saw.
+              </div>
+            </div>
+            <div className="card" style={{ cursor: "default" }}>
+              <div className="name">Publicly verifiable</div>
+              <div className="who">
+                Each sealed result gets a public certificate anyone can check &mdash; and it
+                carries no personal information about you.
+              </div>
+            </div>
+            <div className="card" style={{ cursor: "default" }}>
+              <div className="name">Tamper-evident</div>
+              <div className="who">
+                Results are sealed and anchored daily to public infrastructure, so a verdict
+                cannot be quietly changed after the fact.
+              </div>
+            </div>
+            <div className="card" style={{ cursor: "default" }}>
+              <div className="name">On the ground</div>
+              <div className="who">
+                For diaspora buyers, we become your eyes at the registry and the site &mdash;
+                the checks you cannot make from abroad.
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
+
+        <section className="section" style={{ paddingBottom: 80 }}>
+          <div className="rail" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 19, letterSpacing: "-0.01em" }}>Ready to check a property?</div>
+              <div className="muted" style={{ fontSize: 14, marginTop: 4 }}>
+                Choose a verification pack or build your own. We prepare an itemised quote for your specific property.
+              </div>
+            </div>
+            <a className="btn primary" href="/start" style={{ width: "auto" }}>Start a verification</a>
+          </div>
+        </section>
       </main>
     </>
   );
