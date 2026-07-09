@@ -3,7 +3,6 @@
 // issued / paid). Each row opens the invoice builder. Gated by ops_order_queue
 // (staff-only); a non-staff caller gets a clear "not authorised".
 import { redirect } from "next/navigation";
-import DeskShell from "../../components/desk-shell";
 import { createSupabaseServerClient } from "../../lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +39,6 @@ export default async function OpsQueue() {
 
   return (
     <>
-      <DeskShell active="/ops" />
       <main className="wrap" style={{ padding: "32px 24px 80px" }}>
         <h1 className="detail-h1" style={{ marginTop: 0 }}>Order queue</h1>
         <p className="detail-meta">{rows.length} order{rows.length === 1 ? "" : "s"}</p>

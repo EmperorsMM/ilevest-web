@@ -111,16 +111,6 @@ export default function StartPage() {
 
   return (
     <>
-      <header className="topbar">
-        <div className="wrap">
-          <div className="brand">ile<span>vest</span></div>
-          {authed ? (
-            <a className="signin" href="/client">My dashboard</a>
-          ) : (
-            <a className="signin" href="/signup?mode=signin">Sign in</a>
-          )}
-        </div>
-      </header>
 
       <main>
         <section className="hero">

@@ -102,12 +102,6 @@ export default function NewOrderPage() {
 
   return (
     <>
-      <header className="topbar">
-        <div className="wrap">
-          <a className="brand" href="/start" style={{ textDecoration: "none" }}>ile<span>vest</span></a>
-          <a className="signin" href="/client">My dashboard</a>
-        </div>
-      </header>
 
       <main className="wrap new-wrap">
         {!ready ? (

@@ -148,16 +148,6 @@ export default function CheckWorkspace() {
 
   return (
     <>
-      <header className="topbar">
-        <div className="wrap">
-          <a className="brand" href="/work" aria-label="Ilevest">
-            {/* logo lockup on desktop, seal on mobile */}
-            <Image className="brand-logo" src="/logo.png" alt="Ilevest" width={1046} height={346} style={{ height: 40, width: "auto" }} priority />
-            <Image className="brand-seal" src="/seal.png" alt="Ilevest" width={40} height={40} style={{ height: 34, width: "auto" }} priority />
-          </a>
-          <span className="ops-tag" style={{ marginLeft: 10 }}>Work</span>
-        </div>
-      </header>
       <main className="wrap" style={{ padding: "32px 24px 80px", maxWidth: 760 }}>
         <a className="back-link" href="/work">&larr; My checks</a>
         <h1 className="detail-h1" style={{ marginBottom: 4 }}>{ws.title}</h1>

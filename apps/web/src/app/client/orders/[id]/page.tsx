@@ -5,7 +5,6 @@
 // quoted, and a public verification link per sealed check. Owner/staff-scoped
 // by order_tracking; a non-owner is sent to a not-found.
 import { notFound, redirect } from "next/navigation";
-import SiteFooter from "../../../../components/site-footer";
 import { createSupabaseServerClient } from "../../../../lib/supabase/server";
 import PayButton from "./pay-button";
 
@@ -73,12 +72,6 @@ export default async function OrderDetail({ params }: { params: { id: string } }
 
   return (
     <>
-      <header className="topbar">
-        <div className="wrap">
-          <a className="brand" href="/start" style={{ textDecoration: "none" }}>ile<span>vest</span></a>
-          <a className="signin" href="/client">My dashboard</a>
-        </div>
-      </header>
 
       <main className="wrap detail-wrap">
         <a href="/client" className="back-link">&larr; All verifications</a>
@@ -199,7 +192,6 @@ function InvoiceBlock({ inv, orderId, email }: { inv: Invoice | null; orderId: s
         <>
           <PayButton orderId={orderId} email={email} amountKobo={Math.round((inv.grand_total ?? 0) * 100)} />
           <p className="fees-note">Government fees are charged at cost with no markup &mdash; we provide a receipt for each, or refund it.</p>
-          <SiteFooter />
     </>
       )}
     </div>

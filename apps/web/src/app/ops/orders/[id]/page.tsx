@@ -111,12 +111,6 @@ export default function InvoiceBuilder() {
 
   return (
     <>
-      <header className="topbar">
-        <div className="wrap">
-          <span className="brand">ile<span>vest</span> <span className="ops-tag">Ops</span></span>
-          <a className="signin" href="/ops">All orders</a>
-        </div>
-      </header>
 
       <main className="wrap" style={{ padding: "28px 24px 80px", maxWidth: 760 }}>
         <a href="/ops" className="back-link">&larr; Order queue</a>

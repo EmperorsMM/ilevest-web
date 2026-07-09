@@ -91,11 +91,6 @@ function SignupForm() {
 
   return (
     <>
-      <header className="topbar">
-        <div className="wrap">
-          <a className="brand" href="/start" style={{ textDecoration: "none" }}>ile<span>vest</span></a>
-        </div>
-      </header>
 
       <div className="auth-wrap">
         <div className="auth-card">

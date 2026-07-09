@@ -5,10 +5,8 @@
 // root matches /start and /client exactly.
 import { redirect } from "next/navigation";
 import OAuthCodeCatcher from "../components/oauth-code-catcher";
-import SiteFooter from "../components/site-footer";
 import Image from "next/image";
 import { createSupabaseServerClient } from "../lib/supabase/server";
-import DeskShell from "../components/desk-shell";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +25,6 @@ export default async function Home() {
 
   return (
     <>
-      <DeskShell />
       <OAuthCodeCatcher />
       <main className="wrap">
         <section className="hero">
@@ -109,7 +106,6 @@ export default async function Home() {
           </div>
         </section>
       </main>
-      <SiteFooter />
     </>
   );
 }

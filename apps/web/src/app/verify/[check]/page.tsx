@@ -60,12 +60,6 @@ export default function VerifyPage() {
 
   return (
     <>
-      <header className="topbar">
-        <div className="wrap">
-          <a className="brand" href="/start" style={{ textDecoration: "none" }}>ile<span>vest</span></a>
-          <span className="muted" style={{ fontSize: 13 }}>Independent verification</span>
-        </div>
-      </header>
 
       <main className="wrap verify-wrap">
         {loading ? (

@@ -4,8 +4,6 @@
 // empty state is the front door: a moment of reassurance + a single call to
 // start a verification, routing back to /start.
 import { redirect } from "next/navigation";
-import SiteFooter from "../../components/site-footer";
-import DeskShell from "../../components/desk-shell";
 import { createSupabaseServerClient } from "../../lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +42,6 @@ export default async function ClientHome() {
 
   return (
     <>
-      <DeskShell active="/client" />
       <main className="wrap dash">
         {orders.length === 0 ? <EmptyState first={first} /> : <OrderList orders={orders} first={first} />}
       </main>
@@ -127,7 +124,6 @@ function Status({ o }: { o: OrderRow }) {
         <span className="status-pill"><span className="dot a" />In progress</span>
         <div className="progress"><i style={{ width: `${pct}%` }} /></div>
         <p className="status-sub">{o.ready_checks} of {o.total_checks} checks complete</p>
-        <SiteFooter />
     </>
     );
   }
