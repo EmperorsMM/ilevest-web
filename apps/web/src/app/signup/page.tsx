@@ -60,12 +60,30 @@ function SignupForm() {
   async function withGoogle() {
     setBusy(true);
     setError(null);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: callbackUrl },
-    });
-    if (error) {
-      setError(error.message);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: callbackUrl,
+          // Ensure a full-page redirect to Google actually happens.
+          skipBrowserRedirect: false,
+        },
+      });
+      if (error) {
+        setError(`Google sign-in failed: ${error.message}`);
+        setBusy(false);
+        return;
+      }
+      // If Supabase returned a URL but didn't navigate, do it explicitly.
+      if (data?.url) {
+        window.location.assign(data.url);
+        return;
+      }
+      // No URL and no error => provider not configured on the Supabase side.
+      setError("Google sign-in is not available right now. Please use email, or try again shortly.");
+      setBusy(false);
+    } catch (err) {
+      setError((err as Error)?.message ?? "Google sign-in could not start.");
       setBusy(false);
     }
     // on success the browser navigates to Google, then back to /auth/callback
