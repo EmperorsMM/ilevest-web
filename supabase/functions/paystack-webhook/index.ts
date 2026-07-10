@@ -4,6 +4,7 @@
 // it uses the service role. The provider is swappable via the gateway module (Ruling 2).
 import { preflight } from "../_shared/cors.ts";
 import { json, error } from "../_shared/http.ts";
+import { logInfo, logWarn, logError } from "../_shared/log.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import { ACTIVE_PROVIDER, verifyWebhook, extractCharge } from "../_shared/gateway.ts";
 
@@ -13,7 +14,7 @@ Deno.serve(async (req) => {
 
   const raw = await req.text(); // raw body is required to verify the signature
   const ok = await verifyWebhook(ACTIVE_PROVIDER, raw, req.headers).catch(() => false);
-  if (!ok) return error("Invalid or missing signature", 401);
+  if (!ok) { logWarn("paystack-webhook", "signature_rejected"); return error("Invalid or missing signature", 401); }
 
   let event: any;
   try { event = JSON.parse(raw); } catch { return error("Invalid JSON body"); }
@@ -25,6 +26,6 @@ Deno.serve(async (req) => {
   const { data, error: e } = await supabase.rpc("confirm_payment", {
     p_order: orderId, p_gateway_ref: reference ?? null,
   });
-  if (e) return error("Could not confirm payment", 500, e.message);
+  if (e) { logError("paystack-webhook", "confirm_payment_failed", { message: e.message }); return error("Could not confirm payment", 500, e.message); }
   return json({ received: true, already_verified: data?.already_verified ?? false, checks_created: data?.checks_created ?? 0 });
 });

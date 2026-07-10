@@ -234,11 +234,21 @@ a { color: inherit; }
 .verdict-banner { border: 1px solid var(--line); border-radius: var(--r); padding: 18px 20px; }
 .verdict-banner.g { background: var(--green-wash); border-color: #CFE6D7; }
 .verdict-banner.a { background: var(--amber-wash); border-color: #E6D6A8; }
-.verdict-banner.r { background: var(--red-wash); border-color: #E6C4C0; }
 .verdict-banner.u, .verdict-banner.pending { background: var(--paper); border-color: var(--line); }
+/* RED must dominate (ratified): a serious problem is impossible to underweight. */
+.verdict-banner.r {
+  background: var(--red-wash);
+  border: 2px solid var(--red);
+  border-left-width: 8px;
+  padding: 22px 22px 22px 20px;
+  box-shadow: 0 2px 10px rgba(185,28,28,0.10);
+}
 .verdict-banner-head { display: flex; align-items: center; gap: 9px; }
 .verdict-banner-head .dot { width: 11px; height: 11px; }
+.verdict-banner.r .verdict-banner-head .dot { width: 14px; height: 14px; }
 .verdict-banner-title { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
+.verdict-banner.r .verdict-banner-title { font-size: 22px; color: var(--red); }
+.verdict-banner.r .verdict-banner-line { color: var(--ink); font-weight: 500; }
 .verdict-banner-line { font-size: 14px; color: var(--ink-soft); line-height: 1.55; margin: 8px 0 0; }
 
 .check-list { display: grid; gap: 10px; }
@@ -262,6 +272,14 @@ a { color: inherit; }
 .verify-card { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 30px; }
 .verify-eyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--green); font-weight: 700; margin: 0 0 8px; }
 .verify-h1 { font-size: 24px; letter-spacing: -0.02em; margin: 0 0 6px; }
+/* verify certificate — sober official seal, centered header (trust surface) */
+.verify-card-sealed { text-align: center; }
+.verify-card-sealed .verify-eyebrow { color: var(--muted); }
+.verify-card-sealed .verdict-banner,
+.verify-card-sealed .proof-grid,
+.verify-card-sealed .verify-protect { text-align: left; }
+.verify-seal { display: flex; justify-content: center; margin: 2px 0 14px; }
+
 .verify-lead { font-size: 15px; color: var(--ink-soft); margin: 0; line-height: 1.55; }
 .verify-ref { font-size: 12.5px; color: var(--muted); margin: 14px 0 0; word-break: break-all; }
 .verify-section { font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-soft); margin: 26px 0 10px; }

@@ -6,6 +6,7 @@
 // --no-verify-jwt. Never exposed to browsers.
 import { serviceClient } from "../_shared/supabase.ts";
 import { json, error } from "../_shared/http.ts";
+import { logInfo, logError } from "../_shared/log.ts";
 import { anchorOnce, type AnchorDeps } from "../_shared/anchor.ts";
 
 // ---- swappable external anchor providers (same discipline as the payment provider) ----
@@ -80,8 +81,10 @@ Deno.serve(async (req) => {
       },
     };
     const summary = await anchorOnce(deps);
+    logInfo("anchor-pending", "anchor_run_complete", { summary });
     return json(summary);
   } catch (e) {
+    logError("anchor-pending", "anchor_run_failed", { message: String((e as Error)?.message ?? e) });
     return error("anchoring failed", 500, String((e as Error)?.message ?? e));
   }
 });

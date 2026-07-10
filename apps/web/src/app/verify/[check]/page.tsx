@@ -6,6 +6,7 @@
 // (location only), and the integrity record with its honest protection state.
 // No personal information is shown: no buyer, no seller.
 import { useEffect, useMemo, useState } from "react";
+import Seal from "../../../components/seal";
 import { useParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../../lib/supabase/client";
 
@@ -88,7 +89,10 @@ function Result({ cert, title, check }: { cert: Cert; title: string; check: stri
   const fmt = (d?: string | null) => (d ? new Date(d).toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" }) : "—");
 
   return (
-    <div className="verify-card">
+    <div className="verify-card verify-card-sealed">
+      <div className="verify-seal">
+        <Seal size={84} tone="official" label="Ilevest verification seal" />
+      </div>
       <p className="verify-eyebrow">Verified Ilevest record</p>
       <h1 className="verify-h1">{title || cert.service_code}</h1>
       {loc && <p className="verify-lead">For a property in {loc}.</p>}
