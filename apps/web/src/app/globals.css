@@ -362,3 +362,9 @@ a { color: inherit; }
 @media (max-width: 460px) {
   .site-footer-grid { grid-template-columns: 1fr; }
 }
+
+/* signup consent checkbox — required, non-pre-ticked (lawful-basis evidence) */
+.consent { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 16px; cursor: pointer; }
+.consent input[type="checkbox"] { margin-top: 3px; width: 16px; height: 16px; flex: 0 0 auto; accent-color: var(--green); cursor: pointer; }
+.consent span { font-size: 13.5px; line-height: 1.5; color: var(--ink-soft); }
+.consent a { color: var(--green); text-decoration: underline; }

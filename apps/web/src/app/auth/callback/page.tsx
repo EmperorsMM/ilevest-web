@@ -7,6 +7,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../../lib/supabase/client";
+import { CONSENT_VERSION } from "../../../lib/consent";
 
 function CallbackInner() {
   const router = useRouter();
@@ -16,6 +17,7 @@ function CallbackInner() {
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     const next = params.get("next") || "/client";
+    const wantsConsent = params.get("consent") === "1";
     const code = params.get("code");
     const errDesc = params.get("error_description") || params.get("error");
 
@@ -37,6 +39,17 @@ function CallbackInner() {
         }
         const { data } = await supabase.auth.getSession();
         if (data.session) {
+          // Record consent now if this was a signup that agreed to the terms.
+          // The session exists at this point for both Google and confirmed-email
+          // signup, so this is the reliable place to write the durable record.
+          if (wantsConsent) {
+            try {
+              await supabase.rpc("record_consent", {
+                p_version: CONSENT_VERSION,
+                p_user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+              });
+            } catch { /* best-effort; the account is created either way */ }
+          }
           router.replace(next);
         } else {
           setError("Sign-in did not complete. Please try again.");

@@ -5,6 +5,7 @@
 // (keyed to the auth uid) with the client role — the linkage proven in the backend.
 // Social login is access only; verified identity stays with the C1-PE-02 KYC service.
 import { Suspense, useMemo, useState } from "react";
+import { CONSENT_VERSION } from "../../lib/consent";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../lib/supabase/client";
 
@@ -22,14 +23,22 @@ function SignupForm() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkEmail, setCheckEmail] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
+  // On signup, carry a consent flag so /auth/callback records the agreement once
+  // a session exists (email confirmation and Google both establish the session
+  // only after this page). On signin, no consent is recorded.
   const callbackUrl =
     typeof window !== "undefined"
-      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${mode === "signup" && agreed ? "&consent=1" : ""}`
       : "/auth/callback";
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (mode === "signup" && !agreed) {
+      setError("Please agree to the Terms of Service and Privacy Policy to create an account.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -41,9 +50,16 @@ function SignupForm() {
         });
         if (error) throw error;
         if (!data.session) {
-          setCheckEmail(true); // email confirmation is on — they must confirm first
+          setCheckEmail(true); // email confirmation is on — consent is recorded at /auth/callback after they confirm
           return;
         }
+        // Immediate session (email confirmation off): record consent now.
+        try {
+          await supabase.rpc("record_consent", {
+            p_version: CONSENT_VERSION,
+            p_user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+          });
+        } catch { /* consent capture is best-effort here; callback path also covers it */ }
         router.push(next);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -58,6 +74,10 @@ function SignupForm() {
   }
 
   async function withGoogle() {
+    if (mode === "signup" && !agreed) {
+      setError("Please agree to the Terms of Service and Privacy Policy to create an account.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -116,7 +136,29 @@ function SignupForm() {
 
               {error && <div className="auth-err">{error}</div>}
 
-              <button className="btn google" onClick={withGoogle} disabled={busy} type="button">
+              {mode === "signup" && (
+                <label className="consent">
+                  <input
+                    type="checkbox"
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    aria-describedby="consent-text"
+                  />
+                  <span id="consent-text">
+                    I agree to the{" "}
+                    <a href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a>{" "}
+                    and{" "}
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+                  </span>
+                </label>
+              )}
+
+              <button
+                className="btn google"
+                onClick={withGoogle}
+                disabled={busy || (mode === "signup" && !agreed)}
+                type="button"
+              >
                 <GoogleMark /> Continue with Google
               </button>
 
@@ -142,7 +184,7 @@ function SignupForm() {
                     value={password} onChange={(e) => setPassword(e.target.value)}
                     placeholder="At least 6 characters" minLength={6} required />
                 </div>
-                <button className="btn primary" type="submit" disabled={busy}>
+                <button className="btn primary" type="submit" disabled={busy || (mode === "signup" && !agreed)}>
                   {busy ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
                 </button>
               </form>
