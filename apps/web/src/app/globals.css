@@ -368,3 +368,15 @@ a { color: inherit; }
 .consent input[type="checkbox"] { margin-top: 3px; width: 16px; height: 16px; flex: 0 0 auto; accent-color: var(--green); cursor: pointer; }
 .consent span { font-size: 13.5px; line-height: 1.5; color: var(--ink-soft); }
 .consent a { color: var(--green); text-decoration: underline; }
+
+/* legal pages (/privacy, /terms) — readable long-form */
+.legal .lede { max-width: 68ch; }
+.legal-body { max-width: 70ch; }
+.legal-section { margin-bottom: 26px; }
+.legal-section h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 8px; color: var(--ink); }
+.legal-section h3 { font-size: 15px; font-weight: 700; margin: 14px 0 4px; color: var(--ink); }
+.legal-section p { color: var(--ink-soft); line-height: 1.7; margin: 0 0 10px; font-size: 15px; }
+.legal-section ul { margin: 6px 0 10px; padding-left: 0; list-style: none; display: grid; gap: 9px; }
+.legal-section li { color: var(--ink-soft); line-height: 1.65; font-size: 15px; padding-left: 18px; position: relative; }
+.legal-section li::before { content: "\2022"; color: var(--green); position: absolute; left: 4px; }
+.legal-body a { color: var(--green); text-decoration: underline; }
