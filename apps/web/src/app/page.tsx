@@ -28,63 +28,59 @@ export default async function Home() {
       <OAuthCodeCatcher />
       <main className="wrap">
         <section className="hero">
-          <div className="hero-head">
-            <div>
+          <div className="hero-grid">
+            <div className="hero-content">
               <p className="eyebrow">Independent property verification · Lagos · Ogun · FCT</p>
               <h1>Know exactly what you&rsquo;re buying before you pay for it.</h1>
+              <p className="lede">
+                Land fraud, fake titles and disputed ownership cost Nigerian buyers everything.
+                We check the property against the registries, the survey records and the courts,
+                then give you a clear, evidence-backed verdict you can verify yourself.
+              </p>
+
+              <div className="verdicts">
+                <span className="verdict g"><span className="dot g" /><b>Green</b> clear to proceed</span>
+                <span className="verdict"><span className="dot a" /><b>Amber</b> proceed with care</span>
+                <span className="verdict"><span className="dot r" /><b>Red</b> a serious problem</span>
+              </div>
+
+              <div className="hero-cta">
+                <a className="btn primary" href="/start">Start a verification</a>
+                <a className="btn ghost" href="/signup?mode=signin">Sign in</a>
+              </div>
             </div>
+
             <div className="hero-seal">
-              <Image src="/seal.png" alt="Ilevest verification seal" width={128} height={128} priority />
+              <Image src="/seal-lg.png" alt="Ilevest verification seal" width={281} height={281} priority />
             </div>
-          </div>
-          <p className="lede">
-            Land fraud, fake titles and disputed ownership cost Nigerian buyers everything.
-            We check the property against the registries, the survey records and the courts,
-            then give you a clear, evidence-backed verdict you can verify yourself.
-          </p>
-
-          <div className="verdicts">
-            <span className="verdict g"><span className="dot g" /><b>Green</b> clear to proceed</span>
-            <span className="verdict"><span className="dot a" /><b>Amber</b> proceed with care</span>
-            <span className="verdict"><span className="dot r" /><b>Red</b> a serious problem</span>
-          </div>
-
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 30, maxWidth: 440 }}>
-            <a className="btn primary" href="/start" style={{ width: "auto", flex: "1 1 auto" }}>
-              Start a verification
-            </a>
-            <a className="btn" href="/signup?mode=signin"
-               style={{ width: "auto", flex: "0 0 auto", border: "1px solid var(--line)", color: "var(--ink)" }}>
-              Sign in
-            </a>
           </div>
         </section>
 
         <section className="section">
           <h2>How the trust is built</h2>
           <div className="grid">
-            <div className="card" style={{ cursor: "default" }}>
+            <div className="card static">
               <div className="name">Evidence-backed</div>
               <div className="who">
                 Every finding is captured, fingerprinted and kept &mdash; no trust-me verdicts.
                 You see what we saw.
               </div>
             </div>
-            <div className="card" style={{ cursor: "default" }}>
+            <div className="card static">
               <div className="name">Publicly verifiable</div>
               <div className="who">
                 Each sealed result gets a public certificate anyone can check &mdash; and it
                 carries no personal information about you.
               </div>
             </div>
-            <div className="card" style={{ cursor: "default" }}>
+            <div className="card static">
               <div className="name">Tamper-evident</div>
               <div className="who">
                 Results are sealed and anchored daily to public infrastructure, so a verdict
                 cannot be quietly changed after the fact.
               </div>
             </div>
-            <div className="card" style={{ cursor: "default" }}>
+            <div className="card static">
               <div className="name">On the ground</div>
               <div className="who">
                 For diaspora buyers, we become your eyes at the registry and the site &mdash;
@@ -94,7 +90,36 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="section" style={{ paddingBottom: 80 }}>
+        <section className="section">
+          <h2>What happens when you press the button</h2>
+          <p className="muted" style={{ maxWidth: "58ch", marginTop: 4 }}>
+            Four steps, start to finish. <a href="/how-it-works">See it in full →</a>
+          </p>
+          <div className="steps">
+            <div>
+              <div className="step-n">1</div>
+              <div className="step-t">Choose your checks</div>
+              <div className="step-b">Pick a ready-made bundle, or build your own set.</div>
+            </div>
+            <div>
+              <div className="step-n">2</div>
+              <div className="step-t">We verify</div>
+              <div className="step-b">At the registries, the survey office, the courts — and on the ground.</div>
+            </div>
+            <div>
+              <div className="step-n">3</div>
+              <div className="step-t">You get a plain-English verdict</div>
+              <div className="step-b">Cleared, Proceed with care, Serious problem found, or Unresolved.</div>
+            </div>
+            <div>
+              <div className="step-n">4</div>
+              <div className="step-t">Verify it yourself</div>
+              <div className="step-b">A sealed certificate anyone you choose can independently confirm.</div>
+            </div>
+          </div>
+        </section>
+
+        <section className="section section-last">
           <div className="rail" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
             <div>
               <div style={{ fontWeight: 800, fontSize: 19, letterSpacing: "-0.01em" }}>Ready to check a property?</div>

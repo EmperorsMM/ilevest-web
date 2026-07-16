@@ -130,11 +130,11 @@ export default function CheckWorkspace() {
               "Exception flagged — Ops has it.");
   };
 
-  if (loading) return <main className="wrap" style={{ padding: "60px 24px" }}><p className="detail-meta">Loading…</p></main>;
+  if (loading) return <main className="wrap-work" style={{ padding: "60px 24px" }}><p className="detail-meta">Loading…</p></main>;
 
   if (!ws?.visible) {
     return (
-      <main className="wrap" style={{ padding: "60px 24px" }}>
+      <main className="wrap-work" style={{ padding: "60px 24px" }}>
         <h1 className="detail-h1">Not your check</h1>
         <p className="detail-empty">This workspace belongs to the worker assigned to the check.</p>
         <a className="back-link" href="/work">&larr; Back to my checks</a>
@@ -148,7 +148,7 @@ export default function CheckWorkspace() {
 
   return (
     <>
-      <main className="wrap" style={{ padding: "32px 24px 80px", maxWidth: 760 }}>
+      <main className="wrap-work" style={{ padding: "32px 24px 80px", maxWidth: 760 }}>
         <a className="back-link" href="/work">&larr; My checks</a>
         <h1 className="detail-h1" style={{ marginBottom: 4 }}>{ws.title}</h1>
         <p className="detail-meta">

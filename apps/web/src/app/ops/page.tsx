@@ -28,7 +28,7 @@ export default async function OpsQueue() {
   const { data, error } = await supabase.rpc("ops_order_queue");
   if (error) {
     return (
-      <main className="wrap" style={{ padding: "60px 24px" }}>
+      <main className="wrap-work" style={{ padding: "60px 24px" }}>
         <h1 className="detail-h1">Not authorised</h1>
         <p className="detail-empty">This area is for Ilevest operations staff.</p>
         <a className="back-link" href="/client">&larr; Back to your dashboard</a>
@@ -39,7 +39,7 @@ export default async function OpsQueue() {
 
   return (
     <>
-      <main className="wrap" style={{ padding: "32px 24px 80px" }}>
+      <main className="wrap-work" style={{ padding: "32px 24px 80px" }}>
         <h1 className="detail-h1" style={{ marginTop: 0 }}>Order queue</h1>
         <p className="detail-meta">{rows.length} order{rows.length === 1 ? "" : "s"}</p>
 

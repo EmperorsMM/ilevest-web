@@ -35,7 +35,7 @@ export function ToastHost({ children }: { children: ReactNode }) {
           <div key={t.id} onClick={() => dismiss(t.id)}
                style={{ pointerEvents: "auto", cursor: "pointer", maxWidth: 520, margin: "0 16px",
                         padding: "12px 16px", borderRadius: 10, fontSize: 14, lineHeight: 1.4,
-                        color: "#fff", background: t.kind === "ok" ? "#16a34a" : "#b91c1c",
+                        color: "#fff", background: t.kind === "ok" ? "var(--cleared)" : "var(--red)",
                         boxShadow: "0 6px 24px rgba(0,0,0,0.18)" }}>
             {t.text}
           </div>

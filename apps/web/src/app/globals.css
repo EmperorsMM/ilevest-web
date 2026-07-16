@@ -37,6 +37,29 @@
   --red-wash:   #F6E4E2;
   --unresolved: #6B7280;   /* Unresolved — honest, never dressed up as a pass */
 
+  /* ============ STRUCTURE & TYPE ============================================
+     RESTORED. These four lived in :root and were deleted by the v1.0 palette
+     rewrite, which replaced the whole block with colours only. Every one of
+     them was silently failing in production:
+       --sans  undefined -> body font-family invalid -> THE WHOLE SITE fell back
+               to the browser default serif. Not Inter. Not Fraunces.
+       --serif undefined -> Fraunces never applied to any headline.
+       --r     undefined -> every card/button corner rendered square.
+       --maxw  undefined -> .wrap had NO max-width, so it spanned the full
+               viewport: the container was never actually constrained, which is
+               exactly the "content hugs the left edge, dead zone right" effect. */
+  --sans:  "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --serif: "Fraunces Variable", Georgia, "Times New Roman", serif;
+  --r:     12px;
+
+  /* Container widths — the system applied intelligently, not blanket-one-width.
+     READING surfaces (public, /client, order detail, /verify) get a comfortable
+     centred column. WORK surfaces (/ops, /review, /work) are TOOLS — tables,
+     queues, evidence columns — and get a wider container so the desk staff are
+     not fighting a reading measure to do their job. */
+  --maxw:      1200px;   /* reading — the default */
+  --maxw-work: 1440px;   /* work surfaces */
+
 }
 
 * { box-sizing: border-box; }
@@ -53,6 +76,9 @@ body {
 a { color: inherit; }
 
 .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+/* Work surfaces: same system (palette, type, spacing) at a width sized for
+   tables and queues rather than for reading prose. */
+.wrap-work { max-width: var(--maxw-work); margin: 0 auto; padding: 0 24px; }
 
 /* ---- top bar ---- */
 .topbar { border-bottom: 1px solid var(--line); background: var(--surface); }
@@ -83,14 +109,35 @@ a { color: inherit; }
   margin: 14px 0 0; max-width: 15ch;
 }
 .hero p.lede { font-size: clamp(17px, 2.1vw, 21px); color: var(--ink-soft); max-width: 56ch; margin: 18px 0 0; }
-/* hero head: headline leads, seal to the side (stacks on mobile) */
-.hero-head { display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: start; }
-.hero-seal { padding-top: 8px; }
-@media (max-width: 720px) {
-  .hero-head { grid-template-columns: 1fr; }
+/* HERO — the seal is the right-hand WEIGHT of the whole hero, not a decoration
+   sitting on the headline's shoulder. The content column (eyebrow, headline,
+   lede, verdicts, actions) reads as one block; the seal balances that block and
+   is vertically centred against it. Text stays LEFT-aligned, ragged right
+   (Brand Identity 5.2) — only the container is centred, never the copy. */
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 64px; align-items: center; }
+.hero-content { min-width: 0; }
+.hero-seal img { display: block; width: 168px; height: auto; }
+.hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 30px; max-width: 440px; }
+.hero-cta .btn { width: auto; }
+.hero-cta .btn.primary { flex: 1 1 auto; }
+.btn.ghost { background: var(--surface); border-color: var(--line); color: var(--ink); flex: 0 0 auto; }
+.btn.ghost:hover { border-color: var(--ink); }
+@media (max-width: 860px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 24px; }
   .hero-seal { order: -1; }
-  .hero-seal svg { width: 84px; height: 84px; }
+  .hero-seal img { width: 96px; }
 }
+
+/* THE STEPS STRIP — what actually HAPPENS if you press the button. The trust
+   cards answer "why believe you"; this answers the frightened first-timer's
+   real question: "what am I getting into?". A summary that reduces anxiety —
+   deliberately lighter than /how-it-works, never a second copy of it. */
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 22px; }
+.step-n { font-family: var(--serif); font-size: 28px; font-weight: 600; line-height: 1; color: var(--green); }
+.step-t { font-weight: 700; font-size: 15px; margin: 9px 0 5px; color: var(--ink); }
+.step-b { color: var(--muted); font-size: 13.5px; line-height: 1.55; }
+@media (max-width: 860px) { .steps { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
+@media (max-width: 520px) { .steps { grid-template-columns: 1fr; } }
 
 
 /* the signature: the verdict scale */
@@ -400,3 +447,7 @@ a { color: inherit; }
 .legal-section li { color: var(--ink-soft); line-height: 1.65; font-size: 15px; padding-left: 18px; position: relative; }
 .legal-section li::before { content: "\2022"; color: var(--green); position: absolute; left: 4px; }
 .legal-body a { color: var(--green); text-decoration: underline; }
+
+/* replaces ad-hoc inline styles: a card that is presentational, not clickable */
+.card.static { cursor: default; }
+.section-last { padding-bottom: 80px; }

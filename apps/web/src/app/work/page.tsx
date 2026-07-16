@@ -32,7 +32,7 @@ export default async function MyChecks() {
 
   return (
     <>
-      <main className="wrap" style={{ padding: "32px 24px 80px" }}>
+      <main className="wrap-work" style={{ padding: "32px 24px 80px" }}>
         <h1 className="detail-h1" style={{ marginTop: 0 }}>My checks</h1>
         <p className="detail-meta">
           {open.length} open · {done.length} completed

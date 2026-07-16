@@ -25,7 +25,7 @@ export default async function DeskQueue() {
 
   if (!q.staff) {
     return (
-      <main className="wrap" style={{ padding: "60px 24px" }}>
+      <main className="wrap-work" style={{ padding: "60px 24px" }}>
         <h1 className="detail-h1">Staff only</h1>
         <p className="detail-empty">The desk is for Ilevest Ops and Reviewers.</p>
       </main>
@@ -34,7 +34,7 @@ export default async function DeskQueue() {
 
   return (
     <>
-      <main className="wrap" style={{ padding: "32px 24px 80px" }}>
+      <main className="wrap-work" style={{ padding: "32px 24px 80px" }}>
         <h1 className="detail-h1" style={{ marginTop: 0 }}>The desk</h1>
         <p className="detail-meta">
           {q.in_review.length} in review · {q.exceptions.length} exception{q.exceptions.length === 1 ? "" : "s"} · {q.intake.length} in intake

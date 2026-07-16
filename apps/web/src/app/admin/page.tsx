@@ -2,9 +2,9 @@
 // and authoritatively by Row-Level Security at the database (security).
 export default function AdminSurface() {
   return (
-    <main style={{ padding: 24, fontFamily: "system-ui" }}>
+    <main className="wrap-work" style={{ padding: "40px 24px" }}>
       <h1>Admin surface</h1>
-      <p style={{ color: "#666" }}>Scaffolding placeholder — no features yet.</p>
+      <p className="muted">Scaffolding placeholder — no features yet.</p>
     </main>
   );
 }

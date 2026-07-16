@@ -123,11 +123,11 @@ export default function ReviewBench() {
               "Escalated — it lands on the Reviewer's pile for an Unresolved decision.");
   };
 
-  if (loading) return <main className="wrap" style={{ padding: "60px 24px" }}><p className="detail-meta">Loading…</p></main>;
+  if (loading) return <main className="wrap-work" style={{ padding: "60px 24px" }}><p className="detail-meta">Loading…</p></main>;
 
   if (!ws?.visible) {
     return (
-      <main className="wrap" style={{ padding: "60px 24px" }}>
+      <main className="wrap-work" style={{ padding: "60px 24px" }}>
         <h1 className="detail-h1">Not visible</h1>
         <p className="detail-empty">The bench is for desk staff and the check&rsquo;s assigned worker.</p>
         <a className="back-link" href="/review">&larr; Back to the desk</a>
@@ -143,7 +143,7 @@ export default function ReviewBench() {
 
   return (
     <>
-      <main className="wrap" style={{ padding: "32px 24px 80px", maxWidth: 760 }}>
+      <main className="wrap-work" style={{ padding: "32px 24px 80px", maxWidth: 760 }}>
         <a className="back-link" href="/review">&larr; The desk</a>
         <h1 className="detail-h1" style={{ marginBottom: 4 }}>{ws.title}</h1>
         <p className="detail-meta">

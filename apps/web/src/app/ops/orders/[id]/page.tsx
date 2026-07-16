@@ -112,7 +112,7 @@ export default function InvoiceBuilder() {
   return (
     <>
 
-      <main className="wrap" style={{ padding: "28px 24px 80px", maxWidth: 760 }}>
+      <main className="wrap-work" style={{ padding: "28px 24px 80px", maxWidth: 760 }}>
         <a href="/ops" className="back-link">&larr; Order queue</a>
         <h1 className="detail-h1">Invoice</h1>
 
