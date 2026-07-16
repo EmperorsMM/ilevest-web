@@ -39,7 +39,7 @@ export default async function DeskShell() {
       <div className="wrap">
         <a className="brand" href={user ? "/client" : "/start"} aria-label="Ilevest — verify before you buy">
           <Image className="brand-logo" src="/logo.png" alt="Ilevest — verify before you buy" width={1046} height={346} priority />
-          <Image className="brand-seal" src="/seal.png" alt="Ilevest" width={40} height={40} priority />
+          <Image className="brand-compact" src="/logo-compact.png" alt="Ilevest" width={823} height={281} priority />
         </a>
 
         <DeskNav tabs={tabs} />

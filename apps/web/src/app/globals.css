@@ -4,24 +4,39 @@
    The boldness is spent on the verdict chips and the seal motif; everything else stays quiet. */
 
 :root {
-  --ink:        #0E1A2B;   /* near-black navy — authority, trust */
-  --ink-soft:   #2A3850;
-  --paper:      #FBFAF7;   /* warm off-white page */
-  --surface:    #FFFFFF;
-  --line:       #E6E3DC;   /* warm hairline */
-  --muted:      #5C6675;
-  --green:      #1E7A46;   /* "GREEN" verdict — cleared */
-  --green-ink:  #12351F;
-  --green-wash: #ECF4EE;
-  --amber:      #B07A00;   /* "AMBER" — caution */
-  --amber-wash: #F7EFD8;
-  --red:        #B0322B;   /* "RED" — stop */
-  --red-wash:   #F6E4E2;
+  /* ================= CORE IDENTITY — Brand Identity v1.0 =================
+     Codified palette. Boldness is spent in exactly two places: the verdict
+     and the seal. Everything else is restraint. */
+  --ink:        #13212B;   /* Ink — authority: headlines, body at full strength */
+  --ink-soft:   #2A3850;   /* supporting: softer body copy */
+  --paper:      #FAF8F3;   /* Paper — warm off-white. NEVER stark white:
+                              paper reads as document, white reads as generic app */
+  --surface:    #FFFFFF;   /* cards lift off the paper */
+  --line:       #E6E3DC;   /* supporting: warm hairline */
+  --muted:      #5A5A5A;   /* Grey — secondary text (6.50:1 on paper, AA) */
+  --green:      #1F5C45;   /* Ilevest Green — BRAND ONLY. Authoritative, never
+                              bright or 'eco'. NEVER used to mean 'cleared'. */
+  --green-ink:  #12351F;   /* supporting: deep green for text on wash */
+  --green-wash: #E8F1ED;   /* Accent Wash — a whisper, not a highlight */
 
-  --r: 12px;
-  --maxw: 1080px;
-  --sans: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --serif: "Fraunces Variable", "Fraunces", Georgia, "Times New Roman", serif;  /* display voice — headlines only */
+  /* ============== VERDICT SYSTEM — FUNCTIONAL, NEVER DECORATIVE ==========
+     These are not brand colours; they are the product's meaning. If a green
+     chip can mean "nice section" somewhere, it stops meaning "cleared"
+     everywhere. Never repurpose these for decoration, buttons or mood. */
+  --cleared:    #1F7A3D;   /* Cleared — deliberately SEPARATE from brand green */
+  --amber:      #996100;   /* Proceed with care.
+                              NOTE: overrides the brand doc's #B07000, which
+                              measured 3.83:1 on paper and FAILED the doc's own
+                              accessibility rule (needs 4.5:1). #996100 is the
+                              lightest ochre that clears AA on paper (4.87:1)
+                              and on its wash (4.50:1) — accessible, still amber. */
+  --amber-wash: #F7EFD8;
+  --red:        #9A2A2A;   /* Serious problem — MUST DOMINATE. Deep and serious:
+                              a rejection stamp, not a browser error. Dominance
+                              comes from weight and frame, not from shouting. */
+  --red-wash:   #F6E4E2;
+  --unresolved: #6B7280;   /* Unresolved — honest, never dressed up as a pass */
+
 }
 
 * { box-sizing: border-box; }
@@ -43,11 +58,16 @@ a { color: inherit; }
 .topbar { border-bottom: 1px solid var(--line); background: var(--surface); }
 .topbar .wrap { display: flex; align-items: center; justify-content: space-between; height: 72px; }
 .brand { display: inline-flex; align-items: center; }
-.brand-logo { height: 42px; width: auto; display: block; }   /* full lockup incl. tagline */
-.brand-seal { height: 36px; width: auto; display: none; }
+/* Brand Identity 3.3 — THE MOBILE RULING.
+   Desktop: the primary lockup (seal + wordmark + tagline).
+   Mobile:  the COMPACT LOCKUP (seal + wordmark, no tagline). The seal ALONE is
+   never the mobile header — Ilevest is unknown, most of our traffic is mobile,
+   and a nameless symbol is exactly how an untrustworthy site behaves. */
+.brand-logo    { height: 42px; width: auto; display: block; }
+.brand-compact { height: 34px; width: auto; display: none; }
 @media (max-width: 640px) {
-  .brand-logo { display: none; }
-  .brand-seal { display: block; }
+  .brand-logo    { display: none; }
+  .brand-compact { display: block; }
 }
 .topbar a.signin { font-size: 14px; color: var(--muted); text-decoration: none; }
 .topbar a.signin:hover { color: var(--ink); }
@@ -79,7 +99,7 @@ a { color: inherit; }
   border-radius: 999px; padding: 8px 14px; background: var(--surface); font-size: 14px; }
 .verdict b { font-weight: 700; }
 .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; transform: translateY(-1px); }
-.dot.g { background: var(--green); } .dot.a { background: var(--amber); } .dot.r { background: var(--red); }
+.dot.g { background: var(--cleared); } .dot.a { background: var(--amber); } .dot.r { background: var(--red); }
 .verdict.g { background: var(--green-wash); border-color: #CFE6D7; }
 
 /* ---- section scaffolding ---- */
@@ -167,7 +187,7 @@ a { color: inherit; }
 .verdict.a { background: var(--amber-wash); border-color: #E6D6A8; }
 .verdict.r { background: var(--red-wash); border-color: #E6C4C0; }
 .verdict.u { background: var(--paper); border-color: var(--line); }
-.dot.u { background: var(--muted); }
+.dot.u { background: var(--unresolved); }
 
 /* ---- client dashboard ---- */
 .dash { padding: 40px 24px 80px; }
