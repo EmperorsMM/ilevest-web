@@ -451,3 +451,46 @@ a { color: inherit; }
 /* replaces ad-hoc inline styles: a card that is presentational, not clickable */
 .card.static { cursor: default; }
 .section-last { padding-bottom: 80px; }
+
+/* ================= DESK SURFACES (staff tools) =============================
+   Work surfaces share the palette, type and spacing of the buyer surfaces —
+   only the measure differs (.wrap-work). What follows replaces the ad-hoc
+   colours these files carried (#16a34a, #d97706, #6b7280, #111, rgba(0,0,0,..))
+   which were generic Tailwind values, not ours.
+
+   JUDGMENT CALL — staff WORKFLOW states do NOT use verdict colours.
+   A workflow state ("Sealed", "Exception", "Returned for fix") is not a verdict.
+   Per the brand rule, the four verdict colours carry the product's MEANING and
+   must not be repurposed. So state cards draw on BRAND tokens only:
+     .done      -> --green  (brand: a positive completion. NOT --cleared.)
+     .official  -> --ink    (the sealing ceremony: authority)
+     .attention -> --muted  (exception / returned: a human must act)
+   Exception and Returned share the attention treatment and are distinguished by
+   their heading — honest, because both mean the same thing to the desk: act. */
+.state-card { margin-top: 16px; border-left: 4px solid var(--line); }
+.state-card.done      { border-left-color: var(--green); }
+.state-card.official  { border-left-color: var(--ink); }
+.state-card.attention { border-left-color: var(--muted); }
+
+/* Evidence lists — was rgba(0,0,0,0.08), now the warm hairline. */
+.evidence-item { padding: 8px 0; border-top: 1px solid var(--line); }
+.evidence-item.voided { opacity: 0.6; }
+
+/* THE VERDICT PICKER — the most consequential control in the product.
+   The reviewer chooses the verdict a buyer will act on, so they should SEE the
+   verdict they are assigning, exactly as the buyer will. This is the one place
+   verdict colours belong on a staff surface: they are being used FOR a verdict. */
+.verdict-pick { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.verdict-pick label {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px;
+  cursor: pointer; background: var(--surface); font-size: 14px; font-weight: 600;
+  color: var(--ink-soft); transition: border-color .12s, background .12s;
+}
+.verdict-pick label:hover { border-color: var(--muted); }
+.verdict-pick label.on { border-width: 2px; padding: 7px 13px; }
+.verdict-pick label.on.g { border-color: var(--cleared); background: var(--green-wash); color: var(--cleared); }
+.verdict-pick label.on.a { border-color: var(--amber);   background: var(--amber-wash); color: var(--amber); }
+.verdict-pick label.on.r { border-color: var(--red);     background: var(--red-wash);   color: var(--red); }
+.verdict-pick label.on.u { border-color: var(--unresolved); background: var(--paper);   color: var(--unresolved); }
+.verdict-pick input { margin: 0; accent-color: var(--ink); }

@@ -38,6 +38,10 @@ type Workspace = {
 const COLOURS = ["green", "amber", "red", "unresolved"] as const;
 type Colour = (typeof COLOURS)[number];
 
+// maps a verdict value to the shared verdict class (.g/.a/.r/.u), so the
+// picker shows the reviewer exactly the colour the buyer will see.
+const COLOUR_CLASS: Record<Colour, string> = { green: "g", amber: "a", red: "r", unresolved: "u" };
+
 const COLOUR_HELP: Record<Colour, string> = {
   green: "Verified clean as at today.",
   amber: "Verified with cautions the buyer must read.",
@@ -155,7 +159,7 @@ export default function ReviewBench() {
         {msg && <p className={msg.kind === "ok" ? "auth-ok" : "auth-err"} style={{ marginTop: 12 }}>{msg.text}</p>}
 
         {sealed && (
-          <div className="card" style={{ marginTop: 16, borderLeft: "4px solid #16a34a" }}>
+          <div className="card state-card done">
             <strong>Sealed.</strong>
             <p style={{ margin: "6px 0 0" }}>
               Fingerprint <code>{shortHash(sealed.content_hash)}</code> is on the chain and joins tonight&rsquo;s
@@ -170,7 +174,7 @@ export default function ReviewBench() {
         )}
 
         {ws.state === "exception" && (
-          <div className="card" style={{ marginTop: 16, borderLeft: "4px solid #6b7280" }}>
+          <div className="card state-card attention">
             <strong>Exception</strong>
             {ws.last_reason && <p style={{ margin: "6px 0 0" }}>{ws.last_reason}</p>}
             {isOps ? (
@@ -203,7 +207,7 @@ export default function ReviewBench() {
           ) : (
             <ul style={{ listStyle: "none", padding: 0, margin: "10px 0 0" }}>
               {(ws.evidence ?? []).map((e) => (
-                <li key={e.id} style={{ padding: "8px 0", borderTop: "1px solid rgba(0,0,0,0.08)", opacity: e.voided ? 0.6 : 1 }}>
+                <li key={e.id} className={`evidence-item${e.voided ? " voided" : ""}`}>
                   <span style={{ textDecoration: e.voided ? "line-through" : "none" }}>
                     <strong>{e.label ?? e.kind}</strong> <small>({e.kind.replace(/_/g, " ")} · {e.capture_channel})</small>
                   </span>
@@ -245,18 +249,18 @@ export default function ReviewBench() {
               </button>
             </div>
 
-            <div className="card" style={{ marginTop: 16, borderLeft: "4px solid #111" }}>
+            <div className="card state-card official">
               <strong>The sealing ceremony</strong>
               <p className="detail-meta" style={{ margin: "6px 0 12px" }}>
                 {liveEvidence.length} live evidence item{liveEvidence.length === 1 ? "" : "s"} and the findings above
                 will be sealed under this verdict — permanently, immutably, publicly verifiable.
               </p>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+              <div className="verdict-pick">
                 {COLOURS.map((c) => (
-                  <label key={c} style={{ border: "1px solid rgba(0,0,0,0.2)", borderRadius: 8, padding: "6px 12px",
-                                          cursor: "pointer", background: colour === c ? "rgba(0,0,0,0.06)" : "transparent" }}>
+                  <label key={c} className={`${colour === c ? `on ${COLOUR_CLASS[c]}` : ""}`}>
                     <input type="radio" name="colour" value={c} checked={colour === c}
-                           onChange={() => { setColour(c); setConfirmWord(""); }} style={{ marginRight: 6 }} />
+                           onChange={() => { setColour(c); setConfirmWord(""); }} />
+                    <span className={`dot ${COLOUR_CLASS[c]}`} />
                     {c.toUpperCase()}
                   </label>
                 ))}
